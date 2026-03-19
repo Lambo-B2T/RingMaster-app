@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>RINGMASTER – Test API</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #080808;
+    --surface: #131313;
+    --surface2: #1c1c1c;
+    --border: #252525;
+    --accent: #E8C84A;
+    --red: #FF4B2B;
+    --green: #4CAF50;
+    --text: #F0EDE6;
+    --muted: #555;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 0 0 80px;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(180deg, #0f0f0f, #080808);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 20px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    letter-spacing: 0.12em;
+    background: linear-gradient(135deg, #E8C84A, #FF9A00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .status-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--muted);
+    display: inline-block;
+    margin-right: 6px;
+    transition: background 0.3s;
+  }
+  .status-dot.connected { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .status-dot.error { background: var(--red); }
+  .status-text { font-size: 0.72rem; color: var(--muted); }
+
+  /* Search */
+  .search-section { padding: 0 16px; }
+  .search-bar {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 13px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: border-color 0.2s;
+  }
+  .search-bar:focus-within { border-color: var(--accent); }
+  .search-bar input {
+    background: none; border: none; outline: none;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    width: 100%;
+  }
+  .search-bar input::placeholder { color: var(--muted); }
+  .search-icon { font-size: 1rem; opacity: 0.5; flex-shrink: 0; }
+
+  /* Theme pills */
+  .themes {
+    display: flex;
+    gap: 8px;
+    padding: 14px 16px 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .themes::-webkit-scrollbar { display: none; }
+  .pill {
+    white-space: nowrap;
+    padding: 7px 14px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .pill.active {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+    font-weight: 700;
+  }
+  .pill:active { transform: scale(0.95); }
+
+  /* Results */
+  .results-header {
+    padding: 18px 16px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .results-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .results-count {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent);
+    background: var(--surface2);
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  /* Sound cards */
+  .sound-list {
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .sound-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .sound-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: transparent;
+    border-radius: 3px 0 0 3px;
+    transition: background 0.2s;
+  }
+  .sound-card.playing {
+    border-color: var(--accent);
+    background: #1c1900;
+  }
+  .sound-card.playing::before { background: var(--accent); }
+
+  .sound-emoji {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+
+  .sound-info { flex: 1; min-width: 0; }
+  .sound-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+  }
+  .sound-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .sound-dur {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--muted);
+  }
+  .badge {
+    font-size: 0.58rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .badge-free { background: #0d2d0d; color: #4CAF50; border: 1px solid #1a4a1a; }
+  .badge-playing { background: #2a1a00; color: var(--accent); border: 1px solid #3a2a00; }
+
+  /* Waveform */
+  .wave {
+    display: flex; gap: 2px; align-items: center; height: 16px; margin-top: 5px;
+  }
+  .wave-bar {
+    width: 2.5px; background: var(--accent); border-radius: 2px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .playing .wave-bar { opacity: 1; animation: wavePulse 0.7s ease-in-out infinite alternate; }
+  .wave-bar:nth-child(1) { height: 4px; animation-delay: 0s; }
+  .wave-bar:nth-child(2) { height: 12px; animation-delay: 0.1s; }
+  .wave-bar:nth-child(3) { height: 7px; animation-delay: 0.2s; }
+  .wave-bar:nth-child(4) { height: 14px; animation-delay: 0.05s; }
+  .wave-bar:nth-child(5) { height: 5px; animation-delay: 0.15s; }
+  .wave-bar:nth-child(6) { height: 9px; animation-delay: 0.25s; }
+  .wave-bar:nth-child(7) { height: 11px; animation-delay: 0.08s; }
+
+  /* Play button */
+  .btn-play {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    color: var(--text);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-play:active { transform: scale(0.9); }
+  .sound-card.playing .btn-play {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #000;
+  }
+
+  /* Loading */
+  .loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+  .loading-text { font-size: 0.8rem; letter-spacing: 0.1em; }
+
+  /* Empty */
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  .empty .icon { font-size: 2.5rem; margin-bottom: 12px; }
+
+  /* Error */
+  .error-box {
+    margin: 20px 16px;
+    background: #1a0000;
+    border: 1px solid #3a0000;
+    border-radius: 14px;
+    padding: 16px;
+    font-size: 0.8rem;
+    color: #FF6B6B;
+    display: none;
+  }
+
+  /* Audio progress */
+  .progress-bar {
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 6px;
+    overflow: hidden;
+    display: none;
+  }
+  .playing .progress-bar { display: block; }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.5s linear;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes wavePulse {
+    from { transform: scaleY(0.3); }
+    to { transform: scaleY(1); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .sound-card { animation: fadeIn 0.3s ease both; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo">RINGMASTER</div>
+    <div>
+      <span class="status-dot" id="statusDot"></span>
+      <span class="status-text" id="statusText">Connexion…</span>
+    </div>
+  </div>
+  <div class="search-section">
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Ferrari, rossignol, cloche…" autocomplete="off">
+    </div>
+  </div>
+  <div class="themes">
+    <div class="pill active" data-query="supercar engine">🏎️ Supercars</div>
+    <div class="pill" data-query="ferrari engine">🐎 Ferrari</div>
+    <div class="pill" data-query="lamborghini engine">🐂 Lamborghini</div>
+    <div class="pill" data-query="formula 1 race car">🏁 F1</div>
+    <div class="pill" data-query="motorcycle engine">🏍️ Motos</div>
+    <div class="pill" data-query="bird singing">🦅 Oiseaux</div>
+    <div class="pill" data-query="church bell">🔔 Cloches</div>
+    <div class="pill" data-query="thunder storm">🌊 Nature</div>
+    <div class="pill" data-query="airplane jet engine">✈️ Aviation</div>
+  </div>
+</div>
+
+<div class="error-box" id="errorBox"></div>
+
+<div class="results-header">
+  <span class="results-label" id="resultsLabel">Chargement…</span>
+  <span class="results-count" id="resultsCount"></span>
+</div>
+
+<div id="soundList" class="sound-list">
+  <div class="loading">
+    <div class="spinner"></div>
+    <div class="loading-text">Connexion à Freesound…</div>
+  </div>
+</div>
+
+<script>
+const API_KEY = 'F2oGiy4H9wAkwx5m9mazYC76K2BwEzp2nVvr7m7E';
+const BASE_URL = 'https://freesound.org/apiv2';
+
+const statusDot = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+const soundList = document.getElementById('soundList');
+const resultsLabel = document.getElementById('resultsLabel');
+const resultsCount = document.getElementById('resultsCount');
+const searchInput = document.getElementById('searchInput');
+const errorBox = document.getElementById('errorBox');
+
+let currentAudio = null;
+let currentCard = null;
+let searchTimeout = null;
+
+const themeEmojis = {
+  'supercar': '🏎️', 'ferrari': '🐎', 'lamborghini': '🐂',
+  'formula': '🏁', 'motorcycle': '🏍️', 'bird': '🦅',
+  'bell': '🔔', 'thunder': '🌊', 'airplane': '✈️',
+  'default': '🔊'
+};
+
+function getEmoji(tags, name) {
+  const all = [...(tags || []), name].join(' ').toLowerCase();
+  if (all.includes('ferrari') || all.includes('lamborghini') || all.includes('supercar') || all.includes('hypercar')) return '🏎️';
+  if (all.includes('formula') || all.includes('f1') || all.includes('race')) return '🏁';
+  if (all.includes('motorcycle') || all.includes('moto') || all.includes('bike')) return '🏍️';
+  if (all.includes('bird') || all.includes('robin') || all.includes('nightingale') || all.includes('oiseau')) return '🦅';
+  if (all.includes('bell') || all.includes('church') || all.includes('cloche')) return '🔔';
+  if (all.includes('thunder') || all.includes('storm') || all.includes('rain')) return '⛈️';
+  if (all.includes('airplane') || all.includes('jet') || all.includes('aircraft')) return '✈️';
+  if (all.includes('engine') || all.includes('motor') || all.includes('car')) return '🔧';
+  return '🔊';
+}
+
+function formatDuration(seconds) {
+  const s = Math.floor(seconds);
+  return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+}
+
+async function search(query) {
+  soundList.innerHTML = `<div class="loading"><div class="spinner"></div><div class="loading-text">Recherche en cours…</div></div>`;
+  errorBox.style.display = 'none';
+  resultsCount.textContent = '';
+  resultsLabel.textContent = `"${query}"`;
+
+  try {
+    const url = `${BASE_URL}/search/text/?query=${encodeURIComponent(query)}&fields=id,name,duration,previews,tags,license&page_size=15&token=${API_KEY}&filter=duration:[1+TO+30]`;
+    const res = await fetch(url);
+
+    if (!res.ok) {
+      throw new Error(`Erreur API : ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    statusDot.className = 'status-dot connected';
+    statusText.textContent = 'Connecté ✓';
+
+    if (!data.results || data.results.length === 0) {
+      soundList.innerHTML = `<div class="empty"><div class="icon">🔍</div>Aucun son trouvé pour "${query}"<br>Essayez un autre mot-clé</div>`;
+      return;
+    }
+
+    resultsCount.textContent = `${data.count}+ sons`;
+    renderSounds(data.results);
+
+  } catch (err) {
+    statusDot.className = 'status-dot error';
+    statusText.textContent = 'Erreur';
+    soundList.innerHTML = `<div class="empty"><div class="icon">⚠️</div>Impossible de charger les sons.<br><small>${err.message}</small></div>`;
+    errorBox.style.display = 'block';
+    errorBox.textContent = 'Erreur de connexion : ' + err.message;
+  }
+}
+
+function renderSounds(sounds) {
+  soundList.innerHTML = '';
+  sounds.forEach((sound, i) => {
+    const card = document.createElement('div');
+    card.className = 'sound-card';
+    card.style.animationDelay = `${i * 0.05}s`;
+
+    const emoji = getEmoji(sound.tags, sound.name);
+    const dur = formatDuration(sound.duration);
+    const preview = sound.previews?.['preview-hq-mp3'] || sound.previews?.['preview-lq-mp3'];
+
+    card.innerHTML = `
+      <div class="sound-emoji">${emoji}</div>
+      <div class="sound-info">
+        <div class="sound-name">${sound.name}</div>
+        <div class="sound-meta">
+          <span class="sound-dur">⏱ ${dur}</span>
+          <span class="badge badge-free">LIBRE</span>
+        </div>
+        <div class="wave">
+          <div class="wave-bar"></div><div class="wave-bar"></div>
+          <div class="wave-bar"></div><div class="wave-bar"></div>
+          <div class="wave-bar"></div><div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="prog-${sound.id}"></div></div>
+      </div>
+      <div class="btn-play" data-preview="${preview}" data-id="${sound.id}">▶</div>
+    `;
+
+    card.querySelector('.btn-play').addEventListener('click', () => togglePlay(card, preview, sound.id));
+    soundList.appendChild(card);
+  });
+}
+
+function togglePlay(card, previewUrl, soundId) {
+  if (!previewUrl) return;
+
+  // Stop current
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio = null;
+    if (currentCard) {
+      currentCard.classList.remove('playing');
+      currentCard.querySelector('.btn-play').textContent = '▶';
+    }
+    if (currentCard === card) {
+      currentCard = null;
+      return;
+    }
+  }
+
+  // Play new
+  const audio = new Audio(previewUrl);
+  currentAudio = audio;
+  currentCard = card;
+  card.classList.add('playing');
+  card.querySelector('.btn-play').textContent = '⏹';
+
+  const progFill = document.getElementById(`prog-${soundId}`);
+
+  audio.addEventListener('timeupdate', () => {
+    if (audio.duration && progFill) {
+      progFill.style.width = (audio.currentTime / audio.duration * 100) + '%';
+    }
+  });
+
+  audio.addEventListener('ended', () => {
+    card.classList.remove('playing');
+    card.querySelector('.btn-play').textContent = '▶';
+    if (progFill) progFill.style.width = '0%';
+    currentAudio = null;
+    currentCard = null;
+  });
+
+  audio.play().catch(() => {
+    card.classList.remove('playing');
+    card.querySelector('.btn-play').textContent = '▶';
+  });
+}
+
+// Theme pills
+document.querySelectorAll('.pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    const query = pill.dataset.query;
+    searchInput.value = '';
+    search(query);
+  });
+});
+
+// Search input
+searchInput.addEventListener('input', () => {
+  clearTimeout(searchTimeout);
+  const val = searchInput.value.trim();
+  if (val.length < 2) return;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  searchTimeout = setTimeout(() => search(val), 600);
+});
+
+// Initial load
+search('supercar engine');
+</script>
+</body>
+</html>
