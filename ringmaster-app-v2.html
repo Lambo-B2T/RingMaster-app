@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>RINGMASTER</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #060606;
+    --surface: #111;
+    --surface2: #1a1a1a;
+    --border: #222;
+    --accent: #E8C84A;
+    --red: #FF4B2B;
+    --green: #4CAF50;
+    --blue: #4B9EFF;
+    --text: #F0EDE6;
+    --muted: #555;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; padding-bottom: 100px; }
+
+  /* HEADER */
+  .header {
+    background: #0a0a0a;
+    border-bottom: 1px solid var(--border);
+    padding: 16px 16px 0;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-row {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+  }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.12em; background: linear-gradient(135deg, #E8C84A, #FF9A00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .status { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); transition: all 0.3s; }
+  .dot.on { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .dot.err { background: var(--red); }
+  .status-txt { font-size: 0.7rem; color: var(--muted); }
+
+  /* SEARCH */
+  .search-wrap { margin-bottom: 14px; }
+  .search-bar {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 14px;
+    padding: 12px 14px; display: flex; align-items: center; gap: 8px;
+    transition: border-color 0.2s;
+  }
+  .search-bar:focus-within { border-color: var(--accent); }
+  .search-bar input { background: none; border: none; outline: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.95rem; width: 100%; }
+  .search-bar input::placeholder { color: var(--muted); }
+
+  /* TABS */
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); }
+  .tab { padding: 10px 16px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s; white-space: nowrap; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* BRANDS GRID */
+  .brands-grid { padding: 16px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .brand-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 16px 14px; cursor: pointer; transition: all 0.2s; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .brand-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, transparent, rgba(232,200,74,0.03)); opacity: 0; transition: opacity 0.2s; }
+  .brand-card:active { transform: scale(0.97); }
+  .brand-card:hover { border-color: #333; }
+  .brand-card:hover::before { opacity: 1; }
+  .brand-emoji { font-size: 2rem; margin-bottom: 8px; display: block; }
+  .brand-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.08em; color: var(--text); }
+  .brand-count { font-size: 0.65rem; color: var(--muted); margin-top: 3px; font-family: 'Space Mono', monospace; }
+  .brand-country { position: absolute; top: 8px; right: 10px; font-size: 0.8rem; }
+
+  /* MODELS LIST */
+  .models-view { display: none; }
+  .models-header {
+    padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid var(--border); position: sticky; top: 130px; background: #0a0a0a; z-index: 50;
+  }
+  .back-btn {
+    width: 34px; height: 34px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.9rem;
+    flex-shrink: 0; transition: all 0.2s;
+  }
+  .back-btn:active { transform: scale(0.9); }
+  .brand-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.1em; background: linear-gradient(135deg, #E8C84A, #FF9A00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .models-list { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+
+  /* SOUND CARD */
+  .sound-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 12px 14px; display: flex; align-items: center; gap: 12px;
+    transition: all 0.2s; position: relative; overflow: hidden;
+  }
+  .sound-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: transparent; transition: background 0.2s; border-radius: 3px 0 0 3px; }
+  .sound-card.playing { border-color: var(--accent); background: #1a1800; }
+  .sound-card.playing::before { background: var(--accent); }
+  .sound-card:active { transform: scale(0.99); }
+
+  .car-icon { width: 48px; height: 48px; border-radius: 12px; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+  .sound-info { flex: 1; min-width: 0; }
+  .model-name { font-size: 0.88rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sound-details { display: flex; align-items: center; gap: 6px; margin-top: 3px; flex-wrap: wrap; }
+  .engine-tag { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--accent); background: #1c1500; border: 1px solid #2a2000; padding: 2px 6px; border-radius: 4px; }
+  .type-tag { font-size: 0.6rem; color: var(--muted); background: var(--surface2); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); }
+  .badge-free { font-size: 0.58rem; color: #4CAF50; background: #0d2d0d; border: 1px solid #1a4a1a; padding: 2px 5px; border-radius: 4px; font-weight: 700; }
+  .badge-search { font-size: 0.58rem; color: var(--blue); background: #0d1a2d; border: 1px solid #1a2a4a; padding: 2px 5px; border-radius: 4px; font-weight: 700; }
+
+  /* Wave */
+  .wave { display: flex; gap: 2px; align-items: center; height: 14px; margin-top: 5px; }
+  .wb { width: 2.5px; background: var(--accent); border-radius: 2px; opacity: 0; transition: opacity 0.2s; }
+  .playing .wb { opacity: 1; animation: wp 0.7s ease-in-out infinite alternate; }
+  .wb:nth-child(1){height:4px;animation-delay:0s} .wb:nth-child(2){height:11px;animation-delay:.1s} .wb:nth-child(3){height:7px;animation-delay:.2s} .wb:nth-child(4){height:13px;animation-delay:.05s} .wb:nth-child(5){height:5px;animation-delay:.15s} .wb:nth-child(6){height:9px;animation-delay:.25s}
+  .prog { height: 2px; background: var(--border); border-radius: 2px; margin-top: 4px; display: none; }
+  .playing .prog { display: block; }
+  .prog-fill { height: 100%; background: var(--accent); border-radius: 2px; width: 0%; transition: width 0.4s linear; }
+
+  /* Play btn */
+  .btn-play { width: 42px; height: 42px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; cursor: pointer; flex-shrink: 0; transition: all 0.2s; color: var(--text); -webkit-tap-highlight-color: transparent; }
+  .btn-play:active { transform: scale(0.88); }
+  .sound-card.playing .btn-play { background: var(--accent); border-color: var(--accent); color: #000; font-weight: bold; }
+
+  /* Category label */
+  .cat-label { padding: 14px 16px 6px; font-size: 0.62rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; justify-content: space-between; }
+  .cat-count { font-family: 'Space Mono', monospace; font-size: 0.6rem; background: var(--surface2); color: var(--accent); padding: 2px 8px; border-radius: 10px; }
+
+  /* Loading / empty */
+  .loading { text-align: center; padding: 50px 20px; color: var(--muted); }
+  .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+  .empty { text-align: center; padding: 50px 20px; color: var(--muted); font-size: 0.85rem; }
+  .empty .ico { font-size: 2.5rem; margin-bottom: 10px; }
+
+  /* BOTTOM NAV */
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #0a0a0a; border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0 20px; z-index: 200; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; opacity: 0.4; transition: opacity 0.2s; }
+  .nav-item.active { opacity: 1; }
+  .nav-item .ni { font-size: 1.2rem; }
+  .nav-item .nl { font-size: 0.5rem; letter-spacing: 0.12em; text-transform: uppercase; }
+  .nav-item.active .nl { color: var(--accent); }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes wp { from { transform: scaleY(0.3); } to { transform: scaleY(1); } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .sound-card { animation: fadeUp 0.25s ease both; }
+  .brand-card { animation: fadeUp 0.2s ease both; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-row">
+    <div class="logo">RINGMASTER</div>
+    <div class="status">
+      <div class="dot" id="dot"></div>
+      <span class="status-txt" id="statusTxt">Prêt</span>
+    </div>
+  </div>
+  <div class="search-wrap">
+    <div class="search-bar">
+      <span style="opacity:0.4">🔍</span>
+      <input type="text" id="searchInput" placeholder="Ferrari 458, V12, Koenigsegg…" autocomplete="off">
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-tab="brands">🏎️ Autos</div>
+    <div class="tab" data-tab="competition">🏁 Course</div>
+    <div class="tab" data-tab="nature">🌿 Nature & IA</div>
+    <div class="tab" data-tab="search">🔎 Recherche</div>
+  </div>
+</div>
+
+<!-- BRANDS VIEW -->
+<div id="brandsView">
+  <div class="brands-grid" id="brandsGrid"></div>
+</div>
+
+<!-- MODELS VIEW -->
+<div class="models-view" id="modelsView">
+  <div class="models-header">
+    <div class="back-btn" id="backBtn">←</div>
+    <div class="brand-title" id="brandTitle"></div>
+  </div>
+  <div id="modelsList" class="models-list"></div>
+</div>
+
+<!-- COMPETITION VIEW -->
+<div id="competitionView" style="display:none">
+  <div class="cat-label">Véhicules de Compétition <span class="cat-count" id="compCount"></span></div>
+  <div id="competitionList" class="models-list"></div>
+</div>
+
+<!-- NATURE VIEW -->
+<div id="natureView" style="display:none">
+  <div style="margin:16px;background:linear-gradient(135deg,#0a1a0a,#0d2a0d);border:1px solid #1a3a1a;border-radius:16px;padding:16px;display:flex;gap:12px;align-items:flex-start;">
+    <div style="font-size:1.8rem;flex-shrink:0">🤖</div>
+    <div>
+      <div style="font-size:0.82rem;font-weight:700;color:#4CAF50;margin-bottom:4px;">Sons générés par Intelligence Artificielle</div>
+      <div style="font-size:0.75rem;color:#3a6a3a;line-height:1.5;">Ces sons sont créés par IA — 100% libres de droits, aucune contribution humaine nécessaire. Qualité constante et reproductible.</div>
+    </div>
+  </div>
+
+  <div class="cat-label" style="margin-top:8px">🦅 Oiseaux & Animaux <span class="cat-count">IA</span></div>
+  <div class="models-list" id="natureAnimalList"></div>
+
+  <div class="cat-label" style="margin-top:8px">🌊 Nature & Ambiances <span class="cat-count">IA</span></div>
+  <div class="models-list" id="natureAmbList"></div>
+
+  <div class="cat-label" style="margin-top:8px">🔔 Cloches & Sonorités <span class="cat-count">IA</span></div>
+  <div class="models-list" id="natureBellList"></div>
+</div>
+
+<!-- SEARCH VIEW -->
+<div id="searchView" style="display:none">
+  <div class="cat-label" id="searchLabel">Résultats de recherche</div>
+  <div id="searchResultsList" class="models-list">
+    <div class="empty"><div class="ico">🔍</div>Tapez un mot-clé ci-dessus<br><small>ex: Ferrari, V12, Koenigsegg, F1…</small></div>
+  </div>
+</div>
+
+<!-- CONTRIBUTE BANNER -->
+<div id="contributeBanner" style="position:fixed;bottom:72px;left:0;right:0;padding:0 16px;z-index:150;pointer-events:none;">
+  <div style="pointer-events:all;background:linear-gradient(135deg,#1c1500,#2a2000);border:1px solid #3a2a00;border-radius:16px;padding:12px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 30px rgba(0,0,0,0.6);" onclick="window.location.href='ringmaster-contribute.html'">
+    <div style="font-size:1.6rem;flex-shrink:0">🎙️</div>
+    <div style="flex:1">
+      <div style="font-size:0.82rem;font-weight:700;color:var(--accent);">Vous avez un véhicule exceptionnel ?</div>
+      <div style="font-size:0.7rem;color:#a08030;margin-top:1px;">Contribuez et recevez un son premium offert →</div>
+    </div>
+    <div style="font-size:1.2rem;color:var(--accent)">›</div>
+  </div>
+</div>
+
+<div class="bottom-nav">
+  <div class="nav-item active"><span class="ni">🎵</span><span class="nl">Sons</span></div>
+  <div class="nav-item"><span class="ni">👥</span><span class="nl">Contacts</span></div>
+  <div class="nav-item"><span class="ni">⭐</span><span class="nl">Favoris</span></div>
+  <div class="nav-item"><span class="ni">⚙️</span><span class="nl">Réglages</span></div>
+</div>
+
+<script>
+const API_KEY = 'F2oGiy4H9wAkwx5m9mazYC76K2BwEzp2nVvr7m7E';
+
+// ─── BASE DE DONNÉES CURATÉE ───────────────────────────────────────────────
+// Chaque son est lié à un ID Freesound vérifié OU à une recherche précise
+const BRANDS = [
+  {
+    id: 'ferrari', name: 'Ferrari', emoji: '🐎', country: '🇮🇹',
+    models: [
+      { name: 'Ferrari F456', engine: 'V12 · 5.5L', type: 'Coupé GT', fsId: 18771 },
+      { name: 'Ferrari 355 Spider', engine: 'V8 · 3.5L', type: 'Spider', fsQuery: 'ferrari 355 engine' },
+      { name: 'Ferrari 340 America', engine: 'V12 · 4.0L', type: 'Classic', fsQuery: 'ferrari 340 america v12' },
+      { name: 'Ferrari Racetrack', engine: 'V8/V12', type: 'Circuit', fsId: 752023 },
+      { name: 'Ferrari / Supercar', engine: 'V8 · Turbo', type: 'Supercar', fsId: 457560 },
+    ]
+  },
+  {
+    id: 'lamborghini', name: 'Lamborghini', emoji: '🐂', country: '🇮🇹',
+    models: [
+      { name: 'Huracán EVO', engine: 'V10 · 5.2L', type: 'Supercar', fsQuery: 'lamborghini huracan v10' },
+      { name: 'Aventador SVJ', engine: 'V12 · 6.5L', type: 'Supercar', fsQuery: 'lamborghini aventador v12' },
+      { name: 'Gallardo LP570', engine: 'V10 · 5.2L', type: 'Supercar', fsQuery: 'lamborghini gallardo engine' },
+      { name: 'Murciélago LP670', engine: 'V12 · 6.5L', type: 'Supercar', fsQuery: 'lamborghini murcielago engine' },
+      { name: 'Urus Performante', engine: 'V8 · 4.0L TT', type: 'SUV Sport', fsQuery: 'lamborghini urus engine' },
+    ]
+  },
+  {
+    id: 'porsche', name: 'Porsche', emoji: '🐴', country: '🇩🇪',
+    models: [
+      { name: '911 GT3 RS (992)', engine: 'Flat-6 · 4.0L', type: 'Track', fsQuery: 'porsche 911 gt3 engine' },
+      { name: '918 Spyder', engine: 'V8 · 4.6L Hybrid', type: 'Hypercar', fsQuery: 'porsche 918 engine' },
+      { name: 'Cayman GT4 RS', engine: 'Flat-6 · 4.0L', type: 'Mid-engine', fsQuery: 'porsche cayman engine' },
+      { name: '997 GT3 RS', engine: 'Flat-6 · 3.8L', type: 'Track', fsQuery: 'porsche 997 gt3 engine' },
+      { name: 'Taycan Turbo S', engine: 'Électrique · 761ch', type: 'EV Sport', fsQuery: 'porsche taycan electric sound' },
+    ]
+  },
+  {
+    id: 'koenigsegg', name: 'Koenigsegg', emoji: '👑', country: '🇸🇪',
+    models: [
+      { name: 'Jesko Absolut', engine: 'V8 · 5.0L TT · 1600ch', type: 'Hypercar', fsQuery: 'koenigsegg engine' },
+      { name: 'Agera RS', engine: 'V8 · 5.0L TT', type: 'Hypercar', fsQuery: 'koenigsegg agera engine' },
+      { name: 'Regera', engine: 'V8 Hybride · 1500ch', type: 'Hypercar', fsQuery: 'hypercar v8 turbo engine' },
+      { name: 'CC850', engine: 'V8 · 5.0L TT', type: 'Hypercar', fsQuery: 'v8 twin turbo supercar engine' },
+    ]
+  },
+  {
+    id: 'mclaren', name: 'McLaren', emoji: '🧡', country: '🇬🇧',
+    models: [
+      { name: 'P1 GTR', engine: 'V8 · 3.8L TT Hybrid', type: 'Hypercar', fsQuery: 'mclaren p1 engine' },
+      { name: '720S', engine: 'V8 · 4.0L TT', type: 'Supercar', fsQuery: 'mclaren 720s engine' },
+      { name: 'Senna GTR', engine: 'V8 · 4.0L TT · 825ch', type: 'Track', fsQuery: 'mclaren senna engine' },
+      { name: 'Artura', engine: 'V6 · 3.0L TT Hybrid', type: 'Supercar', fsQuery: 'mclaren v6 hybrid engine' },
+    ]
+  },
+  {
+    id: 'bugatti', name: 'Bugatti', emoji: '🔵', country: '🇫🇷',
+    models: [
+      { name: 'Chiron Super Sport', engine: 'W16 · 8.0L · 1578ch', type: 'Hypercar', fsQuery: 'bugatti chiron w16 engine' },
+      { name: 'Veyron 16.4', engine: 'W16 · 8.0L · 1001ch', type: 'Hypercar', fsQuery: 'bugatti veyron engine' },
+      { name: 'Bolide', engine: 'W16 · 8.0L · 1825ch', type: 'Track', fsQuery: 'bugatti w16 engine revving' },
+    ]
+  },
+  {
+    id: 'pagani', name: 'Pagani', emoji: '🌀', country: '🇮🇹',
+    models: [
+      { name: 'Huayra R', engine: 'V12 · 6.0L NA · 850ch', type: 'Track', fsQuery: 'pagani huayra engine' },
+      { name: 'Zonda R', engine: 'V12 · 6.0L · 740ch', type: 'Track', fsQuery: 'pagani zonda v12 engine' },
+      { name: 'Utopia', engine: 'V12 · 6.0L TT', type: 'Hypercar', fsQuery: 'pagani v12 engine' },
+    ]
+  },
+  {
+    id: 'aston', name: 'Aston Martin', emoji: '💚', country: '🇬🇧',
+    models: [
+      { name: 'Valkyrie AMR Pro', engine: 'V12 · 6.5L NA · 1000ch', type: 'Hypercar', fsQuery: 'aston martin v12 engine' },
+      { name: 'DBS Superleggera', engine: 'V12 · 5.2L TT', type: 'GT', fsQuery: 'aston martin dbs engine' },
+      { name: 'Vantage GT4', engine: 'V8 · 4.0L TT', type: 'Track', fsQuery: 'aston martin vantage engine' },
+    ]
+  },
+  {
+    id: 'maserati', name: 'Maserati', emoji: '🔱', country: '🇮🇹',
+    models: [
+      { name: 'MC20 Cielo', engine: 'V6 · 3.0L TT · 630ch', type: 'Supercar', fsQuery: 'maserati mc20 engine' },
+      { name: 'GranTurismo Trofeo', engine: 'V6 · 3.0L TT · 490ch', type: 'GT', fsQuery: 'maserati granturismo engine' },
+      { name: 'GranTurismo MC', engine: 'V8 · 4.7L NA', type: 'GT Classic', fsQuery: 'maserati v8 engine' },
+    ]
+  },
+  {
+    id: 'alfa', name: 'Alfa Romeo', emoji: '❤️', country: '🇮🇹',
+    models: [
+      { name: '8C Competizione', engine: 'V8 · 4.7L · 450ch', type: 'Supercar', fsQuery: 'alfa romeo 8c engine' },
+      { name: 'Giulia GTA', engine: 'V6 · 2.9L TT · 540ch', type: 'Sport', fsQuery: 'alfa romeo giulia engine' },
+      { name: '33 Stradale', engine: 'V6 · 3.0L TT · 620ch', type: 'Supercar', fsQuery: 'alfa romeo v6 engine' },
+    ]
+  },
+  {
+    id: 'corvette', name: 'Corvette', emoji: '🇺🇸', country: '🇺🇸',
+    models: [
+      { name: 'C8 ZR1', engine: 'V8 · 5.5L DOHC · 1064ch', type: 'Supercar', fsQuery: 'corvette c8 v8 engine' },
+      { name: 'C7 Z06', engine: 'V8 · 6.2L SC · 659ch', type: 'Supercar', fsQuery: 'corvette z06 v8 engine' },
+      { name: 'C6 ZR1', engine: 'V8 · 6.2L SC · 638ch', type: 'Supercar', fsQuery: 'corvette zr1 supercharged v8' },
+    ]
+  },
+  {
+    id: 'ford', name: 'Ford', emoji: '🔵', country: '🇺🇸',
+    models: [
+      { name: 'GT 2017 Le Mans', engine: 'V6 · 3.5L TT · 650ch', type: 'GT Race', fsQuery: 'ford gt engine racing' },
+      { name: 'Mustang Shelby GT500', engine: 'V8 · 5.2L SC · 760ch', type: 'Muscle', fsQuery: 'mustang shelby gt500 engine' },
+      { name: 'Mustang GT · V8', engine: 'V8 · 5.0L', type: 'Muscle', fsQuery: 'ford mustang v8 engine' },
+    ]
+  },
+];
+
+const COMPETITION = [
+  { name: 'F1 · Départ Brésil 2006', engine: 'V8 · 2.4L', type: 'Formula 1', emoji: '🏎️', fsQuery: 'F1 BR engine starts formula1' },
+  { name: 'F1 · Grand Prix Melbourne', engine: 'V8 · 2.4L', type: 'Formula 1', emoji: '🏁', fsQuery: 'F1 practice Melbourne formula' },
+  { name: 'F1 · Monza Circuit', engine: 'V8 · 2.4L', type: 'Formula 1', emoji: '🇮🇹', fsQuery: 'Monza track formula race engine' },
+  { name: 'Race Car · Drag Racing', engine: 'V8 Dragster', type: 'Drag Race', emoji: '💨', fsQuery: 'drag racing engine burnout' },
+  { name: 'Rally Car · Stage', engine: 'I4 · Turbo', type: 'WRC Rally', emoji: '🌲', fsQuery: 'rally car stage engine dirt' },
+  { name: 'Race Car · Circuit', engine: 'V8 · Sport', type: 'Circuit', emoji: '🏟️', fsQuery: 'race car circuit engine revving' },
+  { name: 'Stock Car · V8', engine: 'V8 · 5.0L', type: 'Stock Car', emoji: '🔄', fsQuery: 'stock car v8 engine racing loud' },
+  { name: 'IndyCar · Long Beach', engine: 'V6 TT', type: 'IndyCar', emoji: '🇺🇸', fsQuery: 'Long Beach Indy Car engine' },
+  { name: 'Moto Sport · Circuit', engine: 'I4 · 600cc', type: 'Moto Racing', emoji: '🏍️', fsQuery: 'motorcycle race engine circuit' },
+  { name: 'Karting · Piste', engine: '125cc · 2T', type: 'Karting', emoji: '🔰', fsQuery: 'kart engine racing track' },
+];
+
+// ─── STATE ─────────────────────────────────────────────────────────────────
+let currentAudio = null;
+let currentCard = null;
+let currentTab = 'brands';
+let searchTimeout = null;
+
+// ─── DOM ────────────────────────────────────────────────────────────────────
+const dot = document.getElementById('dot');
+const statusTxt = document.getElementById('statusTxt');
+const searchInput = document.getElementById('searchInput');
+
+function setStatus(state) {
+  dot.className = 'dot' + (state === 'on' ? ' on' : state === 'err' ? ' err' : '');
+  statusTxt.textContent = state === 'on' ? 'Connecté ✓' : state === 'err' ? 'Erreur' : 'Prêt';
+}
+
+// ─── RENDER BRANDS ──────────────────────────────────────────────────────────
+function renderBrands() {
+  const grid = document.getElementById('brandsGrid');
+  grid.innerHTML = '';
+  BRANDS.forEach((brand, i) => {
+    const card = document.createElement('div');
+    card.className = 'brand-card';
+    card.style.animationDelay = `${i * 0.04}s`;
+    card.innerHTML = `
+      <span class="brand-country">${brand.country}</span>
+      <span class="brand-emoji">${brand.emoji}</span>
+      <div class="brand-name">${brand.name}</div>
+      <div class="brand-count">${brand.models.length} modèles</div>
+    `;
+    card.addEventListener('click', () => showBrand(brand));
+    grid.appendChild(card);
+  });
+}
+
+// ─── SHOW BRAND ─────────────────────────────────────────────────────────────
+function showBrand(brand) {
+  document.getElementById('brandsView').style.display = 'none';
+  const mv = document.getElementById('modelsView');
+  mv.style.display = 'block';
+  document.getElementById('brandTitle').textContent = brand.name;
+  renderModels(brand.models, document.getElementById('modelsList'));
+}
+
+document.getElementById('backBtn').addEventListener('click', () => {
+  stopAudio();
+  document.getElementById('modelsView').style.display = 'none';
+  document.getElementById('brandsView').style.display = 'block';
+});
+
+// ─── RENDER MODELS ──────────────────────────────────────────────────────────
+function renderModels(models, container) {
+  container.innerHTML = '';
+  models.forEach((model, i) => {
+    const card = createSoundCard(model, i, false);
+    container.appendChild(card);
+  });
+}
+
+// ─── RENDER COMPETITION ─────────────────────────────────────────────────────
+function renderCompetition() {
+  const list = document.getElementById('competitionList');
+  document.getElementById('compCount').textContent = `${COMPETITION.length} sons`;
+  list.innerHTML = '';
+  COMPETITION.forEach((item, i) => {
+    const card = createSoundCard(item, i, true);
+    list.appendChild(card);
+  });
+}
+
+// ─── CREATE SOUND CARD ──────────────────────────────────────────────────────
+function createSoundCard(item, index, isComp) {
+  const card = document.createElement('div');
+  card.className = 'sound-card';
+  card.style.animationDelay = `${index * 0.04}s`;
+
+  const uid = 'card_' + Math.random().toString(36).substr(2, 8);
+  card.id = uid;
+
+  const emoji = item.emoji || '🚗';
+  const badge = item.fsId ? '<span class="badge-free">LIBRE</span>' : '<span class="badge-search">LIVE</span>';
+
+  card.innerHTML = `
+    <div class="car-icon">${emoji}</div>
+    <div class="sound-info">
+      <div class="model-name">${item.name}</div>
+      <div class="sound-details">
+        <span class="engine-tag">${item.engine}</span>
+        <span class="type-tag">${item.type}</span>
+        ${badge}
+      </div>
+      <div class="wave"><div class="wb"></div><div class="wb"></div><div class="wb"></div><div class="wb"></div><div class="wb"></div><div class="wb"></div></div>
+      <div class="prog"><div class="prog-fill" id="pf_${uid}"></div></div>
+    </div>
+    <div class="btn-play" id="bp_${uid}">▶</div>
+  `;
+
+  card.querySelector(`#bp_${uid}`).addEventListener('click', () => handlePlay(card, item, uid));
+  return card;
+}
+
+// ─── HANDLE PLAY ────────────────────────────────────────────────────────────
+async function handlePlay(card, item, uid) {
+  // If already playing this card → stop
+  if (currentCard === card) {
+    stopAudio();
+    return;
+  }
+  stopAudio();
+
+  // Get preview URL
+  let previewUrl = null;
+
+  if (item.fsId) {
+    previewUrl = await getPreviewById(item.fsId);
+  } else if (item.fsQuery) {
+    previewUrl = await getPreviewByQuery(item.fsQuery);
+  }
+
+  if (!previewUrl) {
+    statusTxt.textContent = 'Son introuvable';
+    return;
+  }
+
+  const audio = new Audio(previewUrl);
+  currentAudio = audio;
+  currentCard = card;
+  card.classList.add('playing');
+  card.querySelector(`#bp_${uid}`).textContent = '⏹';
+
+  const pf = document.getElementById(`pf_${uid}`);
+  audio.addEventListener('timeupdate', () => {
+    if (audio.duration && pf) pf.style.width = (audio.currentTime / audio.duration * 100) + '%';
+  });
+  audio.addEventListener('ended', () => {
+    card.classList.remove('playing');
+    card.querySelector(`#bp_${uid}`).textContent = '▶';
+    if (pf) pf.style.width = '0%';
+    currentAudio = null; currentCard = null;
+  });
+  audio.play().catch(() => {
+    card.classList.remove('playing');
+    card.querySelector(`#bp_${uid}`).textContent = '▶';
+  });
+}
+
+function stopAudio() {
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  if (currentCard) {
+    currentCard.classList.remove('playing');
+    const bp = currentCard.querySelector('[id^="bp_"]');
+    if (bp) bp.textContent = '▶';
+    currentCard = null;
+  }
+}
+
+// ─── API CALLS ──────────────────────────────────────────────────────────────
+async function getPreviewById(id) {
+  try {
+    setStatus('');
+    const res = await fetch(`https://freesound.org/apiv2/sounds/${id}/?token=${API_KEY}&fields=previews`);
+    const data = await res.json();
+    setStatus('on');
+    return data.previews?.['preview-hq-mp3'] || data.previews?.['preview-lq-mp3'] || null;
+  } catch { setStatus('err'); return null; }
+}
+
+async function getPreviewByQuery(query) {
+  try {
+    setStatus('');
+    const res = await fetch(`https://freesound.org/apiv2/search/text/?query=${encodeURIComponent(query)}&fields=id,previews&page_size=1&token=${API_KEY}&filter=duration:[2+TO+25]`);
+    const data = await res.json();
+    setStatus('on');
+    if (data.results && data.results.length > 0) {
+      return data.results[0].previews?.['preview-hq-mp3'] || data.results[0].previews?.['preview-lq-mp3'] || null;
+    }
+    return null;
+  } catch { setStatus('err'); return null; }
+}
+
+// ─── SEARCH ─────────────────────────────────────────────────────────────────
+async function doSearch(query) {
+  const list = document.getElementById('searchResultsList');
+  const label = document.getElementById('searchLabel');
+  list.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  label.innerHTML = `"${query}" <span class="cat-count" id="srCount"></span>`;
+
+  try {
+    const res = await fetch(`https://freesound.org/apiv2/search/text/?query=${encodeURIComponent(query)}&fields=id,name,duration,previews,tags&page_size=12&token=${API_KEY}&filter=duration:[1+TO+30]`);
+    const data = await res.json();
+    setStatus('on');
+
+    if (!data.results || data.results.length === 0) {
+      list.innerHTML = '<div class="empty"><div class="ico">🔍</div>Aucun résultat</div>';
+      return;
+    }
+
+    document.getElementById('srCount') && (document.getElementById('srCount').textContent = data.count + '+ sons');
+    list.innerHTML = '';
+    data.results.forEach((s, i) => {
+      const model = {
+        name: s.name,
+        engine: s.tags?.slice(0,3).join(' · ') || 'Son libre',
+        type: 'Freesound',
+        emoji: '🔊',
+        fsId: s.id
+      };
+      // Override preview directly
+      model._preview = s.previews?.['preview-hq-mp3'] || s.previews?.['preview-lq-mp3'];
+      const card = createSoundCard(model, i, false);
+      // Patch play to use direct preview
+      const uid = card.id;
+      card.querySelector(`#bp_${uid}`).replaceWith(card.querySelector(`#bp_${uid}`).cloneNode(true));
+      card.querySelector(`#bp_${uid}`).addEventListener('click', () => {
+        if (currentCard === card) { stopAudio(); return; }
+        stopAudio();
+        if (!model._preview) return;
+        const audio = new Audio(model._preview);
+        currentAudio = audio; currentCard = card;
+        card.classList.add('playing');
+        card.querySelector(`#bp_${uid}`).textContent = '⏹';
+        const pf = document.getElementById(`pf_${uid}`);
+        audio.addEventListener('timeupdate', () => { if (audio.duration && pf) pf.style.width = (audio.currentTime/audio.duration*100)+'%'; });
+        audio.addEventListener('ended', () => { card.classList.remove('playing'); card.querySelector(`#bp_${uid}`).textContent='▶'; if(pf)pf.style.width='0%'; currentAudio=null;currentCard=null; });
+        audio.play();
+      });
+      list.appendChild(card);
+    });
+  } catch { setStatus('err'); list.innerHTML = '<div class="empty"><div class="ico">⚠️</div>Erreur de connexion</div>'; }
+}
+
+// ─── TABS ────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    stopAudio();
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentTab = tab.dataset.tab;
+
+    document.getElementById('brandsView').style.display = 'none';
+    document.getElementById('modelsView').style.display = 'none';
+    document.getElementById('competitionView').style.display = 'none';
+    document.getElementById('natureView').style.display = 'none';
+    document.getElementById('searchView').style.display = 'none';
+    // Show contribute banner only on meca tabs
+    const banner = document.getElementById('contributeBanner');
+    banner.style.display = ['brands','competition'].includes(currentTab) ? 'block' : 'none';
+
+    if (currentTab === 'brands') {
+      document.getElementById('brandsView').style.display = 'block';
+    } else if (currentTab === 'competition') {
+      document.getElementById('competitionView').style.display = 'block';
+      renderCompetition();
+    } else if (currentTab === 'nature') {
+      document.getElementById('natureView').style.display = 'block';
+      renderNature();
+    } else if (currentTab === 'search') {
+      document.getElementById('searchView').style.display = 'block';
+    }
+  });
+});
+
+// Search input
+searchInput.addEventListener('input', () => {
+  const val = searchInput.value.trim();
+  if (val.length < 2) return;
+
+  // Switch to search tab if not already
+  if (currentTab !== 'search') {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelector('[data-tab="search"]').classList.add('active');
+    currentTab = 'search';
+    document.getElementById('brandsView').style.display = 'none';
+    document.getElementById('modelsView').style.display = 'none';
+    document.getElementById('competitionView').style.display = 'none';
+    document.getElementById('searchView').style.display = 'block';
+  }
+
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => doSearch(val), 700);
+});
+
+// ─── NATURE DATA ─────────────────────────────────────────────────────────────
+const NATURE_ANIMALS = [
+  { name: 'Rossignol · Chant du soir', engine: 'Luscinia megarhynchos', type: 'Oiseau', emoji: '🐦', fsQuery: 'nightingale bird singing' },
+  { name: 'Merle noir · Aube', engine: 'Turdus merula', type: 'Oiseau', emoji: '🐦', fsQuery: 'blackbird singing morning' },
+  { name: 'Hibou Grand-duc', engine: 'Bubo bubo', type: 'Oiseau nocturne', emoji: '🦉', fsQuery: 'owl hooting night' },
+  { name: 'Aigle royal · Cri', engine: 'Aquila chrysaetos', type: 'Rapace', emoji: '🦅', fsQuery: 'eagle cry call' },
+  { name: 'Perroquet Ara', engine: 'Ara macao', type: 'Perroquet', emoji: '🦜', fsQuery: 'parrot macaw call' },
+  { name: 'Loup · Hurlement', engine: 'Canis lupus', type: 'Mammifère', emoji: '🐺', fsQuery: 'wolf howling' },
+  { name: 'Lion · Rugissement', engine: 'Panthera leo', type: 'Fauve', emoji: '🦁', fsQuery: 'lion roar' },
+  { name: 'Dauphin · Chant', engine: 'Tursiops truncatus', type: 'Cétacé', emoji: '🐬', fsQuery: 'dolphin sound call' },
+];
+
+const NATURE_AMB = [
+  { name: 'Orage tropical', engine: 'Tonnerre + pluie', type: 'Météo', emoji: '⛈️', fsQuery: 'thunder storm heavy rain' },
+  { name: 'Vagues · Océan', engine: 'Surf côtier', type: 'Mer', emoji: '🌊', fsQuery: 'ocean waves beach' },
+  { name: 'Forêt · Aurore', engine: 'Ambiance forestière', type: 'Forêt', emoji: '🌲', fsQuery: 'forest birds dawn ambience' },
+  { name: 'Rivière · Cascade', engine: 'Eau courante', type: 'Eau', emoji: '💧', fsQuery: 'river waterfall flowing' },
+  { name: 'Feu de cheminée', engine: 'Crépitement', type: 'Feu', emoji: '🔥', fsQuery: 'fireplace crackling fire' },
+  { name: 'Vent · Tempête', engine: 'Rafales', type: 'Vent', emoji: '💨', fsQuery: 'wind storm howling' },
+];
+
+const NATURE_BELLS = [
+  { name: 'Cathédrale · Angélus', engine: 'Carillon XVIIe', type: 'Cloche', emoji: '⛪', fsQuery: 'church bell cathedral tolling' },
+  { name: 'Big Ben · Westminster', engine: 'Carillon anglais', type: 'Cloche', emoji: '🕰️', fsQuery: 'big ben westminster chime' },
+  { name: 'Cloche tibétaine', engine: 'Bol chantant', type: 'Méditation', emoji: '🔔', fsQuery: 'tibetan singing bowl bell' },
+  { name: 'Gong japonais', engine: 'Temple Bouddhiste', type: 'Gong', emoji: '🎵', fsQuery: 'japanese temple gong bell' },
+  { name: 'Carillon de vent', engine: 'Wind chimes', type: 'Extérieur', emoji: '🎐', fsQuery: 'wind chimes outdoor' },
+];
+
+function renderNature() {
+  renderModels(NATURE_ANIMALS, document.getElementById('natureAnimalList'));
+  renderModels(NATURE_AMB, document.getElementById('natureAmbList'));
+  renderModels(NATURE_BELLS, document.getElementById('natureBellList'));
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+renderBrands();
+</script>
+</body>
+</html>
