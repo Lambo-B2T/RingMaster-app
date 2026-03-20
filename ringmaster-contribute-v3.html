@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>RINGMASTER – Contribuer</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #060606;
+    --surface: #111;
+    --surface2: #1a1a1a;
+    --border: #222;
+    --accent: #E8C84A;
+    --accent2: #FF9A00;
+    --red: #FF4B2B;
+    --green: #4CAF50;
+    --blue: #4B9EFF;
+    --text: #F0EDE6;
+    --muted: #555;
+  }
+  body {
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 40px;
+    background-color: #0a0a0a;
+    background-image:
+      radial-gradient(ellipse at 30% 15%, rgba(232,200,74,0.07) 0%, transparent 45%),
+      radial-gradient(ellipse at 75% 85%, rgba(255,74,43,0.04) 0%, transparent 45%),
+      repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.03) 3px, rgba(255,255,255,0.03) 4px),
+      repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(255,255,255,0.03) 3px, rgba(255,255,255,0.03) 4px),
+      repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.018) 4px, rgba(255,255,255,0.018) 8px),
+      repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.018) 4px, rgba(255,255,255,0.018) 8px);
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(180deg, rgba(5,5,5,0.98), rgba(8,8,8,0.95));
+    border-bottom: 1px solid rgba(232,200,74,0.15);
+    padding: 20px 20px 16px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 4px 30px rgba(0,0,0,0.5), 0 1px 0 rgba(232,200,74,0.08);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-row { display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 0.12em; background: linear-gradient(135deg, #E8C84A, #FF9A00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .logo-sub { font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+
+  /* HERO */
+  .hero {
+    padding: 28px 20px 20px;
+    text-align: center;
+    background: linear-gradient(180deg, rgba(10,10,10,0.9) 0%, transparent 100%);
+    border-bottom: 1px solid rgba(232,200,74,0.1);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '🏎️';
+    position: absolute;
+    font-size: 180px;
+    opacity: 0.03;
+    top: -20px;
+    right: -20px;
+    transform: rotate(-15deg);
+    pointer-events: none;
+  }
+  .hero-icon { font-size: 3rem; margin-bottom: 12px; }
+  .hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: 0.1em; line-height: 1; margin-bottom: 10px; }
+  .hero p { font-size: 0.85rem; color: var(--muted); line-height: 1.6; max-width: 320px; margin: 0 auto 20px; }
+
+  /* REWARD BANNER */
+  .reward {
+    margin: 0 20px 0;
+    background: linear-gradient(135deg, #1c1500, #2a2000);
+    border: 1px solid #3a2a00;
+    border-radius: 16px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 20px;
+  }
+  .reward-icon { font-size: 2rem; flex-shrink: 0; }
+  .reward-text h3 { font-size: 0.85rem; font-weight: 700; color: var(--accent); margin-bottom: 3px; }
+  .reward-text p { font-size: 0.75rem; color: #a08030; line-height: 1.4; }
+
+  /* SECTION TITLES */
+  .section { padding: 24px 20px 0; }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .step-number {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #000;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* SEQUENCE STEPS */
+  .sequence { display: flex; flex-direction: column; gap: 8px; }
+  .seq-step {
+    background: linear-gradient(135deg, #131313, #0e0e0e);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    transition: all 0.3s;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .seq-step.active {
+    border-color: var(--accent);
+    background: #1a1800;
+    box-shadow: 0 0 20px rgba(232,200,74,0.08);
+  }
+  .seq-step.done { border-color: #1a4a1a; background: #0a1a0a; }
+  .seq-icon { font-size: 1.5rem; flex-shrink: 0; width: 36px; text-align: center; }
+  .seq-info { flex: 1; }
+  .seq-name { font-size: 0.88rem; font-weight: 700; margin-bottom: 3px; }
+  .seq-desc { font-size: 0.75rem; color: var(--muted); line-height: 1.4; }
+  .seq-duration {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent);
+    background: #1c1500;
+    border: 1px solid #2a2000;
+    padding: 2px 8px;
+    border-radius: 6px;
+    margin-top: 6px;
+    display: inline-block;
+  }
+  .seq-status { font-size: 1rem; flex-shrink: 0; }
+
+  /* TIMER */
+  .timer-section {
+    margin: 24px 20px 0;
+    background: linear-gradient(135deg, #0f0f0f, #0a0a0a);
+    border: 1px solid rgba(232,200,74,0.15);
+    border-radius: 20px;
+    padding: 24px 20px;
+    text-align: center;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(232,200,74,0.08);
+  }
+  .timer-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .timer-current-step {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 16px;
+    min-height: 24px;
+  }
+  .timer-display {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 5rem;
+    letter-spacing: 0.05em;
+    background: linear-gradient(135deg, #E8C84A, #FF9A00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .timer-total {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  /* Progress bar */
+  .prog-wrap { background: var(--surface2); border-radius: 4px; height: 4px; margin-bottom: 20px; overflow: hidden; }
+  .prog-bar { height: 100%; background: linear-gradient(90deg, #E8C84A, #FF9A00); border-radius: 4px; width: 0%; transition: width 1s linear; }
+
+  /* Timer buttons */
+  .timer-btns { display: flex; gap: 10px; justify-content: center; }
+  .btn-start {
+    flex: 1;
+    padding: 14px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, #E8C84A, #FF9A00);
+    color: #000;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-start:active { transform: scale(0.97); }
+  .btn-start:disabled { opacity: 0.4; }
+  .btn-reset {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-reset:active { transform: scale(0.9); }
+
+  /* TIPS */
+  .tips {
+    margin: 20px 20px 0;
+    background: #0a1a2a;
+    border: 1px solid #1a2a3a;
+    border-radius: 16px;
+    padding: 16px;
+  }
+  .tips-title { font-size: 0.75rem; font-weight: 700; color: var(--blue); margin-bottom: 10px; letter-spacing: 0.05em; }
+  .tip { display: flex; gap: 8px; margin-bottom: 8px; font-size: 0.78rem; color: #7090b0; line-height: 1.4; }
+  .tip:last-child { margin-bottom: 0; }
+  .tip-dot { color: var(--blue); flex-shrink: 0; margin-top: 2px; }
+
+  /* FORM */
+  .form-section { padding: 24px 20px 0; }
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; display: block; }
+  .form-input {
+    width: 100%;
+    background: linear-gradient(135deg, #1a1a1a, #141414);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  .form-input:focus { border-color: var(--accent); }
+  .form-input::placeholder { color: var(--muted); }
+  select.form-input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23555' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* Upload zone */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 16px;
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--surface);
+  }
+  .upload-zone:active { border-color: var(--accent); background: #1a1800; }
+  .upload-icon { font-size: 2.2rem; margin-bottom: 10px; }
+  .upload-text { font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
+  .upload-sub { font-size: 0.72rem; color: var(--muted); }
+  .upload-formats { margin-top: 10px; display: flex; gap: 6px; justify-content: center; }
+  .fmt { font-size: 0.62rem; font-family: 'Space Mono', monospace; background: var(--surface2); border: 1px solid var(--border); padding: 2px 7px; border-radius: 4px; color: var(--muted); }
+  #fileInput { display: none; }
+  .file-selected { display: none; background: #0a2a0a; border: 1px solid #1a4a1a; border-radius: 12px; padding: 12px 14px; margin-top: 10px; font-size: 0.8rem; color: #4CAF50; }
+
+  /* Submit button */
+  .btn-submit {
+    width: 100%;
+    padding: 16px;
+    border-radius: 16px;
+    border: none;
+    background: linear-gradient(135deg, #E8C84A, #FF9A00);
+    color: #000;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-submit:active { transform: scale(0.98); opacity: 0.9; }
+
+  /* SUCCESS */
+  .success-screen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 40px;
+  }
+  .success-screen.show { display: flex; }
+  .success-icon { font-size: 4rem; margin-bottom: 20px; animation: pop 0.5s ease both; }
+  .success-title { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; letter-spacing: 0.1em; background: linear-gradient(135deg, #E8C84A, #FF9A00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
+  .success-msg { font-size: 0.9rem; color: var(--muted); line-height: 1.6; margin-bottom: 30px; }
+  .success-reward { background: linear-gradient(135deg, #1c1500, #2a2000); border: 1px solid #3a2a00; border-radius: 16px; padding: 16px 20px; margin-bottom: 30px; }
+  .success-reward p { font-size: 0.85rem; color: var(--accent); font-weight: 600; }
+  .btn-back { padding: 14px 32px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.9rem; cursor: pointer; }
+
+  /* NOTIFICATION */
+  .notif {
+    position: fixed;
+    bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--surface2);
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--accent);
+    z-index: 500;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    white-space: nowrap;
+  }
+  .notif.show { transform: translateX(-50%) translateY(0); }
+
+  @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .seq-step { animation: fadeUp 0.3s ease both; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-row">
+    <div>
+      <div class="logo">RINGMASTER</div>
+      <div class="logo-sub">Programme Contributeurs</div>
+    </div>
+    <div style="font-size:1.8rem">🎙️</div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-icon">🏎️</div>
+  <h1>Partagez le son<br>de votre véhicule</h1>
+
+  <!-- Accroche passionnés -->
+  <div style="margin: 10px auto 14px; max-width: 300px; padding: 10px 16px; background: linear-gradient(135deg, rgba(232,200,74,0.07), rgba(255,154,0,0.04)); border: 1px solid rgba(232,200,74,0.22); border-radius: 12px;">
+    <p style="font-size:0.78rem; color: rgba(232,200,74,0.8); font-style:italic; line-height:1.6; margin:0;">
+      "Faites-nous entendre cette douce mélodie —<br>celle que seul votre moteur sait chanter."
+    </p>
+  </div>
+
+  <p>Vous avez un véhicule exceptionnel ? Enregistrez son moteur selon notre protocole et rejoignez la bibliothèque RINGMASTER.</p>
+
+  <div class="reward">
+    <div class="reward-icon">⭐</div>
+    <div class="reward-text">
+      <h3>Récompense Contributeur</h3>
+      <p>En échange de votre enregistrement validé, recevez un son premium exclusif de la bibliothèque RINGMASTER — gratuit, à votre choix.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SÉQUENCE -->
+<div class="section">
+  <div class="section-title">
+    <div class="step-number">1</div>
+    La séquence d'enregistrement
+  </div>
+  <div class="sequence" id="sequence">
+    <div class="seq-step" data-step="0">
+      <div class="seq-icon">🔑</div>
+      <div class="seq-info">
+        <div class="seq-name">Démarrage</div>
+        <div class="seq-desc">Démarrez le moteur. Ne touchez à rien. Laissez le moteur s'installer.</div>
+        <div class="seq-duration">⏱ 10 secondes</div>
+      </div>
+      <div class="seq-status">⏳</div>
+    </div>
+    <div class="seq-step" data-step="1">
+      <div class="seq-icon">😤</div>
+      <div class="seq-info">
+        <div class="seq-name">Ralenti stable</div>
+        <div class="seq-desc">Moteur au ralenti, aucune action. Laissez le son s'installer.</div>
+        <div class="seq-duration">⏱ 10 secondes</div>
+      </div>
+      <div class="seq-status">⏳</div>
+    </div>
+    <div class="seq-step" data-step="2">
+      <div class="seq-icon">⚡</div>
+      <div class="seq-info">
+        <div class="seq-name">Premier coup d'accélérateur</div>
+        <div class="seq-desc">Une courte et légère accélération, puis relâchez. Attendez le ralenti.</div>
+        <div class="seq-duration">⏱ 5 secondes</div>
+      </div>
+      <div class="seq-status">⏳</div>
+    </div>
+    <div class="seq-step" data-step="3">
+      <div class="seq-icon">⚡⚡</div>
+      <div class="seq-info">
+        <div class="seq-name">Deux coups plus forts</div>
+        <div class="seq-desc">Deux accélérations plus puissantes que la précédente. Relâchez à chaque fois.</div>
+        <div class="seq-duration">⏱ 10 secondes</div>
+      </div>
+      <div class="seq-status">⏳</div>
+    </div>
+    <div class="seq-step" data-step="4">
+      <div class="seq-icon">🚀</div>
+      <div class="seq-info">
+        <div class="seq-name">Montée linéaire</div>
+        <div class="seq-desc">Accélération progressive et continue. Montez les régimes jusqu'à votre limite.</div>
+        <div class="seq-duration">⏱ 15 secondes</div>
+      </div>
+      <div class="seq-status">⏳</div>
+    </div>
+    <div class="seq-step" data-step="5">
+      <div class="seq-icon">🎵</div>
+      <div class="seq-info">
+        <div class="seq-name">Séquence libre</div>
+        <div class="seq-desc">Faites chanter votre moteur comme vous le sentez. C'est votre signature.</div>
+        <div class="seq-duration">⏱ Comme vous voulez</div>
+      </div>
+      <div class="seq-status">⏳</div>
+    </div>
+  </div>
+</div>
+
+<!-- TIMER -->
+<div class="timer-section">
+  <div class="timer-label">Minuteur de guidage</div>
+  <div class="timer-current-step" id="timerStep">Appuyez sur Démarrer quand vous êtes prêt</div>
+  <div class="timer-display" id="timerDisplay">00:00</div>
+  <div class="timer-total" id="timerTotal">Durée totale guidée : ~40 sec + séquence libre</div>
+  <div class="prog-wrap"><div class="prog-bar" id="progBar"></div></div>
+  <div class="timer-btns">
+    <button class="btn-start" id="btnStart" onclick="startTimer()">▶ DÉMARRER LE GUIDE</button>
+    <button class="btn-reset" onclick="resetTimer()">↺</button>
+  </div>
+</div>
+
+<!-- CONSEILS -->
+<div class="tips">
+  <div class="tips-title">💡 Conseils pour un enregistrement parfait</div>
+  <div class="tip"><span class="tip-dot">›</span><span>Enregistrez en extérieur ou dans un espace ouvert — pas dans un garage fermé</span></div>
+  <div class="tip"><span class="tip-dot">›</span><span>Silence autour du véhicule — coupez la musique</span></div>
+  <div class="tip"><span class="tip-dot">›</span><span>Utilisez une application d'enregistrement haute qualité (Voice Memos, Easy Voice Recorder Pro)</span></div>
+  <div class="tip"><span class="tip-dot">›</span><span>Format MP3 ou WAV, qualité minimale 128 kbps</span></div>
+  <div class="tip"><span class="tip-dot">›</span><span>Aucune voix humaine, aucun bruit parasite — uniquement le moteur</span></div>
+</div>
+
+<!-- FORMULAIRE -->
+<div class="form-section">
+  <div class="section-title">
+    <div class="step-number">2</div>
+    Informations du véhicule
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Constructeur *</label>
+    <select class="form-input" id="brand">
+      <option value="">Sélectionnez une marque…</option>
+      <option>Ferrari</option>
+      <option>Lamborghini</option>
+      <option>Porsche</option>
+      <option>Koenigsegg</option>
+      <option>McLaren</option>
+      <option>Bugatti</option>
+      <option>Pagani</option>
+      <option>Aston Martin</option>
+      <option>Maserati</option>
+      <option>Alfa Romeo</option>
+      <option>Corvette</option>
+      <option>Ford</option>
+      <option>Dodge</option>
+      <option>Mercedes-AMG</option>
+      <option>BMW M</option>
+      <option>Audi Sport</option>
+      <option>Nissan GT-R</option>
+      <option>Autre</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Modèle exact *</label>
+    <input type="text" class="form-input" id="model" placeholder="ex: 488 GTB, Huracán EVO, 911 GT3 RS…">
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label class="form-label">Année</label>
+      <input type="number" class="form-input" id="year" placeholder="2019" min="1950" max="2026">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Type moteur *</label>
+      <select class="form-input" id="engine">
+        <option value="">Moteur…</option>
+        <option>V6</option>
+        <option>V8</option>
+        <option>V10</option>
+        <option>V12</option>
+        <option>W16</option>
+        <option>Flat-6</option>
+        <option>I4 Turbo</option>
+        <option>V8 Turbo</option>
+        <option>V8 Hybride</option>
+        <option>V12 Hybride</option>
+        <option>Électrique</option>
+        <option>Autre</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Cylindrée & puissance (optionnel)</label>
+    <input type="text" class="form-input" id="specs" placeholder="ex: 3.9L · 720ch">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Type de véhicule</label>
+    <select class="form-input" id="vtype">
+      <option>Supercar</option>
+      <option>Hypercar</option>
+      <option>GT Sport</option>
+      <option>Muscle Car</option>
+      <option>Compétition / Track</option>
+      <option>Formula</option>
+      <option>Rally</option>
+      <option>Moto Sport</option>
+      <option>Autre</option>
+    </select>
+  </div>
+
+  <div class="section-title" style="margin-top: 24px;">
+    <div class="step-number">3</div>
+    Configuration de la captation
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Position du microphone *</label>
+    <div style="display:flex;gap:10px;">
+      <label style="flex:1;cursor:pointer">
+        <input type="radio" name="position" value="exterieur" id="posExt" style="display:none" checked>
+        <div class="pos-card" id="posExtCard" style="background:var(--surface2);border:2px solid var(--accent);border-radius:14px;padding:14px;text-align:center;transition:all 0.2s;">
+          <div style="font-size:1.6rem;margin-bottom:6px;">🌤️</div>
+          <div style="font-size:0.82rem;font-weight:700;color:var(--accent);">Extérieur</div>
+          <div style="font-size:0.68rem;color:var(--muted);margin-top:3px;">Son brut, échappement</div>
+        </div>
+      </label>
+      <label style="flex:1;cursor:pointer">
+        <input type="radio" name="position" value="habitacle" id="posHab" style="display:none">
+        <div class="pos-card" id="posHabCard" style="background:var(--surface);border:2px solid var(--border);border-radius:14px;padding:14px;text-align:center;transition:all 0.2s;">
+          <div style="font-size:1.6rem;margin-bottom:6px;">🚗</div>
+          <div style="font-size:0.82rem;font-weight:700;">Habitacle</div>
+          <div style="font-size:0.68rem;color:var(--muted);margin-top:3px;">Son filtré, ressenti cabine</div>
+        </div>
+      </label>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Conditions de prise de son (optionnel)</label>
+    <input type="text" class="form-input" id="conditions" placeholder="ex: parking, circuit, route ouverte, événement…">
+  </div>
+
+  <div class="section-title" style="margin-top: 24px;">
+    <div class="step-number">4</div>
+    Votre enregistrement
+  </div>
+
+  <div class="form-group">
+    <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+      <div class="upload-icon">🎙️</div>
+      <div class="upload-text">Appuyez pour sélectionner votre fichier audio</div>
+      <div class="upload-sub">Votre enregistrement du moteur</div>
+      <div class="upload-formats">
+        <span class="fmt">MP3</span>
+        <span class="fmt">WAV</span>
+        <span class="fmt">M4A</span>
+        <span class="fmt">OGG</span>
+      </div>
+    </div>
+    <input type="file" id="fileInput" accept="audio/*" onchange="fileSelected(this)">
+    <div class="file-selected" id="fileSelected">✓ Fichier sélectionné : <span id="fileName"></span></div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Votre email (pour recevoir votre récompense)</label>
+    <input type="email" class="form-input" id="email" placeholder="votre@email.com">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Message (optionnel)</label>
+    <textarea class="form-input" id="message" rows="3" placeholder="Parlez-nous de votre véhicule, de l'enregistrement…" style="resize:none;"></textarea>
+  </div>
+
+  <button class="btn-submit" onclick="submitForm()">🎯 SOUMETTRE MON ENREGISTREMENT</button>
+
+  <p style="font-size:0.72rem;color:var(--muted);text-align:center;margin-top:12px;line-height:1.5;">
+    En soumettant, vous confirmez que cet enregistrement vous appartient et autorisez RINGMASTER à l'utiliser dans son application.
+  </p>
+</div>
+
+<!-- SUCCESS SCREEN -->
+<div class="success-screen" id="successScreen">
+  <div class="success-icon">🎉</div>
+  <div class="success-title">Merci !</div>
+  <div class="success-msg">Votre enregistrement a bien été reçu.<br>Notre équipe va le valider sous 48h.<br>Si tout est conforme à la séquence RINGMASTER, vous recevrez votre récompense par email.</div>
+  <div class="success-reward">
+    <p>⭐ Votre son premium exclusif arrive bientôt !</p>
+  </div>
+  <button class="btn-back" onclick="document.getElementById('successScreen').classList.remove('show')">← Retour</button>
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notif" id="notif"></div>
+
+<script>
+// ─── TIMER ──────────────────────────────────────────────────────────────────
+const STEPS = [
+  { name: '🔑 Démarrage', duration: 10, stepIndex: 0 },
+  { name: '😤 Ralenti stable', duration: 10, stepIndex: 1 },
+  { name: '⚡ Premier coup d\'accélérateur', duration: 5, stepIndex: 2 },
+  { name: '⚡⚡ Deux coups plus forts', duration: 10, stepIndex: 3 },
+  { name: '🚀 Montée linéaire', duration: 15, stepIndex: 4 },
+  { name: '🎵 Séquence libre', duration: 999, stepIndex: 5 },
+];
+
+const GUIDED_STEPS = STEPS.slice(0, 5); // Steps with fixed duration
+const TOTAL_GUIDED = GUIDED_STEPS.reduce((a, s) => a + s.duration, 0); // 35s
+
+let timerInterval = null;
+let elapsed = 0;
+let running = false;
+let currentStepIndex = -1;
+
+function pad(n) { return String(n).padStart(2, '0'); }
+
+function formatTime(s) {
+  return `${pad(Math.floor(s/60))}:${pad(s%60)}`;
+}
+
+function getStepAtTime(t) {
+  let acc = 0;
+  for (let i = 0; i < GUIDED_STEPS.length; i++) {
+    acc += GUIDED_STEPS[i].duration;
+    if (t < acc) return i;
+  }
+  // After guided steps
+  if (t < acc + 30) return 4; // montée linéaire ~30s
+  return 5; // libre
+}
+
+function updateSequenceUI(stepIdx) {
+  document.querySelectorAll('.seq-step').forEach((el, i) => {
+    el.classList.remove('active', 'done');
+    const statusEl = el.querySelector('.seq-status');
+    if (i < stepIdx) { el.classList.add('done'); statusEl.textContent = '✅'; }
+    else if (i === stepIdx) { el.classList.add('active'); statusEl.textContent = '▶'; }
+    else { statusEl.textContent = '⏳'; }
+  });
+}
+
+function startTimer() {
+  if (running) {
+    // Pause
+    clearInterval(timerInterval);
+    running = false;
+    document.getElementById('btnStart').textContent = '▶ REPRENDRE';
+    return;
+  }
+
+  running = true;
+  document.getElementById('btnStart').textContent = '⏸ PAUSE';
+
+  timerInterval = setInterval(() => {
+    elapsed++;
+    const display = document.getElementById('timerDisplay');
+    const stepLabel = document.getElementById('timerStep');
+    const prog = document.getElementById('progBar');
+
+    display.textContent = formatTime(elapsed);
+
+    const stepIdx = getStepAtTime(elapsed);
+    const step = STEPS[Math.min(stepIdx, STEPS.length - 1)];
+
+    if (stepIdx !== currentStepIndex) {
+      currentStepIndex = stepIdx;
+      updateSequenceUI(stepIdx);
+
+      // Vibrate on step change
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+
+      // Show notification
+      showNotif(step.name);
+    }
+
+    stepLabel.textContent = step.name;
+
+    // Progress bar (based on guided portion only)
+    const pct = Math.min((elapsed / TOTAL_GUIDED) * 100, 100);
+    prog.style.width = pct + '%';
+
+    // End after ~90 seconds total
+    if (elapsed >= 90) {
+      clearInterval(timerInterval);
+      running = false;
+      document.getElementById('btnStart').textContent = '✓ SÉQUENCE TERMINÉE';
+      document.getElementById('btnStart').disabled = true;
+      document.getElementById('timerStep').textContent = '✅ Séquence complète — Arrêtez l\'enregistrement';
+      updateSequenceUI(6);
+    }
+  }, 1000);
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  running = false;
+  elapsed = 0;
+  currentStepIndex = -1;
+  document.getElementById('timerDisplay').textContent = '00:00';
+  document.getElementById('timerStep').textContent = 'Appuyez sur Démarrer quand vous êtes prêt';
+  document.getElementById('progBar').style.width = '0%';
+  document.getElementById('btnStart').textContent = '▶ DÉMARRER LE GUIDE';
+  document.getElementById('btnStart').disabled = false;
+  document.querySelectorAll('.seq-step').forEach(el => {
+    el.classList.remove('active', 'done');
+    el.querySelector('.seq-status').textContent = '⏳';
+  });
+}
+
+// ─── FILE ────────────────────────────────────────────────────────────────────
+function fileSelected(input) {
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    document.getElementById('fileSelected').style.display = 'block';
+    document.getElementById('fileName').textContent = file.name;
+  }
+}
+
+// ─── FORM SUBMIT ─────────────────────────────────────────────────────────────
+function submitForm() {
+  const brand = document.getElementById('brand').value;
+  const model = document.getElementById('model').value;
+  const engine = document.getElementById('engine').value;
+  const file = document.getElementById('fileInput').files[0];
+
+  if (!brand) { showNotif('⚠️ Sélectionnez un constructeur'); return; }
+  if (!model) { showNotif('⚠️ Indiquez le modèle'); return; }
+  if (!engine) { showNotif('⚠️ Sélectionnez le type de moteur'); return; }
+  const position = document.querySelector('input[name="position"]:checked')?.value;
+  if (!position) { showNotif('⚠️ Choisissez la position du micro'); return; }
+  if (!file) { showNotif('⚠️ Ajoutez votre fichier audio'); return; }
+
+  // Show success
+  document.getElementById('successScreen').classList.add('show');
+}
+
+// ─── NOTIFICATION ─────────────────────────────────────────────────────────────
+let notifTimeout;
+function showNotif(msg) {
+  const notif = document.getElementById('notif');
+  notif.textContent = msg;
+  notif.classList.add('show');
+  clearTimeout(notifTimeout);
+  notifTimeout = setTimeout(() => notif.classList.remove('show'), 2500);
+}
+
+// Position toggle UI
+document.querySelectorAll('input[name="position"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    document.getElementById('posExtCard').style.borderColor = radio.value === 'exterieur' ? 'var(--accent)' : 'var(--border)';
+    document.getElementById('posExtCard').style.background = radio.value === 'exterieur' ? 'var(--surface2)' : 'var(--surface)';
+    document.getElementById('posExtCard').querySelector('div:nth-child(2)').style.color = radio.value === 'exterieur' ? 'var(--accent)' : 'var(--text)';
+    document.getElementById('posHabCard').style.borderColor = radio.value === 'habitacle' ? 'var(--accent)' : 'var(--border)';
+    document.getElementById('posHabCard').style.background = radio.value === 'habitacle' ? 'var(--surface2)' : 'var(--surface)';
+    document.getElementById('posHabCard').querySelector('div:nth-child(2)').style.color = radio.value === 'habitacle' ? 'var(--accent)' : 'var(--text)';
+  });
+});
+</script>
+</body>
+</html>
