@@ -1,0 +1,608 @@
+<!--
+╔══════════════════════════════════════════════════════════════════╗
+║              B2T — TOUS LES RÉGLAGES SONT ICI                   ║
+╠══════════════════════════════════════════════════════════════════╣
+║  🟠 ORANGE  = Position (haut/bas, gauche/droite)                 ║
+║  🟢 VERT    = Taille                                             ║
+║  🟣 VIOLET  = Zoom / échelle                                     ║
+║  ⚪ BLANC   = Vitesse d'animation                                ║
+╚══════════════════════════════════════════════════════════════════╝
+-->
+<script>
+window.B2T = {
+  /* ── STARGATE ─────────────────────────────────────────── */
+  sgTaille  : 0.72,  /* 🟢 Taille : fraction du plus petit côté écran */
+  sgHaut    : 0.54,  /* 🟠 Position verticale   0=haut  1=bas         */
+  sgGauche  : 0.53,  /* 🟠 Position horizontale 0=gauche 1=droite     */
+
+  /* ── INNER RING ───────────────────────────────────────── */
+  irTaille  : 0.95,  /* 🟢 Taille inner ring = fraction du diamètre outer */
+  irDecalX  : 0,     /* 🟠 Décalage horizontal en px */
+  irDecalY  : -0.2,  /* 🟠 Décalage vertical en px */
+  rotation  : 0.35,  /* ⚪ Vitesse rotation degrés/frame */
+
+  /* ── GLOW CONSTELLATIONS inner ring ─────────────────── */
+  glowStep  : 60,    /* ⚪ Degrés entre chaque niveau de glow (1-6) */
+
+  /* ── MASQUE SOL ──────────────────────────────────────── */
+  /* 🟢 Hauteur du masque en % de la porte : 15=discret | 25=moyen | 35=beaucoup */
+  solHauteur : 22,
+
+  /* ── DHD ─────────────────────────────────────────────── */
+  dhdLargeur    : 0.85,  /* 🟢 Largeur initiale (fraction largeur écran)  */
+  dhdGauche     : 0.50,  /* 🟠 Position horizontale (0.5=centré)          */
+  dhdZoomLargeur: 2.5,   /* 🟣 Échelle zoom (2.5 = 2.5x plus grand)       */
+  dhdDescente   : 85,    /* 🟠 Position initiale : % caché sous le bas
+                               85=très bas | 50=moitié visible             */
+  dhdZoomDescente: 28,   /* 🟠 Position zoom : % encore caché
+                               0=bord bas | 50=moitié                      */
+
+  /* ── DEBUG — mettre true pour voir les zones de clic ─── */
+  /* 🟣 false=invisible | true=zones rouges visibles        */
+  debug : true,
+
+  /* ── BOUTONS DHD — zones de clic transparentes ───────── */
+  /* 🟠 bx : position horizontale  0%=gauche → 100%=droite */
+  /* 🟠 by : position verticale    0%=haut   → 100%=bas    */
+  /* 🟢 bs : taille zone cliquable en pixels               */
+  /* ── BOUTONS DHD — zones de clic transparentes ───────── */
+  /* 🟠 bx : pixels depuis gauche du DHD  (0=bord gauche)  */
+  /* 🟠 by : pixels depuis haut du DHD    (0=bord haut)    */
+  /* 🟢 bw : largeur de l'ovale en pixels                  */
+  /* 🟢 bh : hauteur de l'ovale en pixels                  */
+  /* Le DHD image fait environ 480px de large              */
+  btns: [
+    { url:'/sante/',           bx:240, by:55,  bw:130, bh:60 },  /* 🟠 🟠 🟢 🟢 Santé           */
+    { url:'/culture/',         bx:138, by:70,  bw:130, bh:60 },  /* 🟠 🟠 🟢 🟢 Culture         */
+    { url:'/streetwear/',      bx:342, by:70,  bw:130, bh:60 },  /* 🟠 🟠 🟢 🟢 Streetwear      */
+    { url:'/famille/',         bx:88,  by:125, bw:130, bh:60 },  /* 🟠 🟠 🟢 🟢 Famille         */
+    { url:'/business/',        bx:392, by:125, bw:130, bh:60 },  /* 🟠 🟠 🟢 🟢 Business        */
+    { url:'/savoirs-oublies/', bx:145, by:210, bw:130, bh:60 },  /* 🟠 🟠 🟢 🟢 Savoirs Oubliés */
+    { url:'/musique/',         bx:335, by:210, bw:130, bh:60 },  /* 🟠 🟠 🟢 🟢 Musique         */
+  ],
+};
+</script>
+
+<style>
+/* ══ MOTEUR CSS ══════════════════════════════════════════ */
+
+body, html {
+  overflow: hidden !important;
+  touch-action: none !important;
+}
+
+#b2t-root {
+  position: fixed !important;
+  top: 0; left: 0;
+  width: 100vw !important;
+  height: 100vh !important;
+  overflow: visible !important;
+  background: transparent !important;
+  z-index: 9000;
+  pointer-events: none;
+}
+
+/* Logo */
+#b2t-logo-wrap {
+  position: absolute;
+  top: 52px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 200; pointer-events: none;
+}
+#b2t-logo {
+  display: block; max-height: 60px; max-width: 240px; width: auto;
+  filter: drop-shadow(0 0 10px rgba(0,180,255,0.8));
+  animation: lp 3s ease-in-out infinite;
+}
+@keyframes lp {
+  0%,100% { filter: drop-shadow(0 0 8px rgba(0,180,255,0.5)); }
+  50%     { filter: drop-shadow(0 0 22px rgba(0,220,255,1)); }
+}
+
+/* Stargate */
+#b2t-sg {
+  position: absolute;
+  z-index: 10;
+  pointer-events: all;
+  cursor: crosshair;
+}
+
+/* Outer ring */
+#b2t-outer {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 30;
+  pointer-events: none;
+}
+
+/* Inner ring */
+#b2t-inner {
+  position: absolute !important;
+  top: 0 !important; left: 0 !important;
+  width: 100% !important; height: 100% !important;
+  right: auto !important; bottom: auto !important;
+  display: block !important;
+  margin: 0 !important; padding: 0 !important;
+  z-index: 20;
+  pointer-events: none;
+  transform-origin: 50% 50%;
+  will-change: transform;
+  mix-blend-mode: multiply;
+  filter: brightness(0.85) saturate(1.1);
+  transition: filter 0.8s ease;
+}
+#b2t-inner.g1 { filter: brightness(0.90) saturate(1.2) drop-shadow(0 0 5px rgba(100,180,255,0.5)); }
+#b2t-inner.g2 { filter: brightness(1.00) saturate(1.5) drop-shadow(0 0 8px rgba(100,180,255,0.65)); }
+#b2t-inner.g3 { filter: brightness(1.10) saturate(1.8) drop-shadow(0 0 12px rgba(120,200,255,0.8)); }
+#b2t-inner.g4 { filter: brightness(1.20) saturate(2.0) drop-shadow(0 0 16px rgba(140,210,255,0.9)); }
+#b2t-inner.g5 { filter: brightness(1.30) saturate(2.2) drop-shadow(0 0 20px rgba(160,220,255,0.95)); }
+#b2t-inner.g6 { filter: brightness(1.40) saturate(2.4) drop-shadow(0 0 24px rgba(180,230,255,1)); }
+#b2t-inner.gmax {
+  filter: brightness(1.6) saturate(0.3)
+          drop-shadow(0 0 28px #fff)
+          drop-shadow(0 0 45px rgba(200,230,255,1));
+  transition: filter 0.2s ease;
+}
+
+/* ══ MASQUE SOL ══════════════════════════════════════════
+   Fondu elliptique qui suit la forme ronde de la porte.
+   Pas de rectangle — la transparence suit la courbe.
+════════════════════════════════════════════════════════ */
+#b2t-sol-mask {
+  display: none !important;
+  position: fixed;
+  left: 0;
+  width: 100vw;
+  pointer-events: none;
+  z-index: 9100;
+  /* hauteur et bottom injectés par JS */
+  background: linear-gradient(
+    to top,
+    rgba(82, 68, 52, 1.00)  0%,
+    rgba(90, 75, 58, 0.92) 25%,
+    rgba(100, 83, 64, 0.70) 55%,
+    rgba(110, 92, 72, 0.30) 80%,
+    transparent             100%
+  );
+  -webkit-mask-image: radial-gradient(
+    ellipse 55% 100% at 50% 100%,
+    black 0%,
+    black 45%,
+    transparent 72%
+  );
+  mask-image: radial-gradient(
+    ellipse 55% 100% at 50% 100%,
+    black 0%,
+    black 45%,
+    transparent 72%
+  );
+}
+
+/* DHD */
+#b2t-dhd-wrap {
+  position: fixed !important;
+  bottom: 0 !important;
+  z-index: 9500 !important;
+  pointer-events: all !important;
+  transform-origin: bottom center !important;
+  transition: transform 1.6s cubic-bezier(.22,1,.36,1),
+              width    1.6s cubic-bezier(.22,1,.36,1),
+              opacity  0.8s ease !important;
+}
+#b2t-dhd-img {
+  display: block !important;
+  width: 100% !important; height: auto !important;
+  object-fit: contain;
+  filter: none;
+}
+
+/* Boutons DHD */
+#b2t-btns { position: absolute; inset: 0; pointer-events: none; }
+
+.b2t-btn {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: default;
+  transition: opacity .3s ease;
+  font-size: 0;
+  color: transparent;
+}
+
+/* Zone active quand DHD zoomé */
+#b2t-dhd-wrap.zoomed .b2t-btn {
+  opacity: 1;
+  pointer-events: all !important;
+  cursor: pointer !important;
+  transition-delay: 0.35s;
+}
+
+.b2t-btn.hovered {
+  opacity: 1 !important;
+  pointer-events: all !important;
+  cursor: pointer !important;
+}
+
+/* Mode debug — zones visibles avec nom */
+.b2t-btn.debug-on {
+  background: rgba(255,0,0,0.25) !important;
+  border: 2px dashed red !important;
+  border-radius: 50% !important;
+  opacity: 1 !important;
+  font-size: 8px !important;
+  color: white !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  font-weight: bold !important;
+  text-shadow: 0 0 3px black !important;
+}
+
+/* Chevrons */
+.b2t-chev {
+  fill: rgba(255,160,0,.06);
+  stroke: rgba(255,140,0,.2);
+  stroke-width: 1;
+  transition: fill .3s, filter .3s;
+}
+.b2t-chev.lit {
+  fill: rgba(255,160,0,.92); stroke: #ffaa00;
+  filter: drop-shadow(0 0 8px #ff9900) drop-shadow(0 0 18px #ffcc00);
+}
+
+/* Vortex */
+#b2t-vortex {
+  position: absolute; display: flex;
+  align-items: center; justify-content: center;
+  z-index: 50; pointer-events: none;
+  opacity: 0; transition: opacity .5s;
+}
+#b2t-vortex.on { opacity: 1; }
+.b2t-vr {
+  position: absolute; border-radius: 50%;
+  border: 2px solid transparent;
+}
+#b2t-vortex.on .b2t-vr { animation: vrspin 1.2s linear infinite; }
+.b2t-vr.r1 { border-color:rgba(0,220,255,.9); box-shadow:0 0 20px rgba(0,200,255,.8); animation-duration:.85s!important; }
+.b2t-vr.r2 { border-color:rgba(0,150,255,.7); animation-direction:reverse!important; animation-duration:1.3s!important; }
+.b2t-vr.r3 { border-color:rgba(100,200,255,.8); animation-duration:.65s!important; }
+@keyframes vrspin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+#b2t-vcore {
+  position:absolute; border-radius:50%;
+  background:radial-gradient(circle,#00e5ff 0%,#0066ff 40%,rgba(0,0,80,.6) 70%,transparent 100%);
+  box-shadow:0 0 30px rgba(0,220,255,1); opacity:0; transform:scale(0);
+}
+#b2t-vortex.on #b2t-vcore { animation:vcin .8s .4s cubic-bezier(.34,1.56,.64,1) forwards; }
+@keyframes vcin { from{opacity:0;transform:scale(0)} to{opacity:1;transform:scale(1)} }
+#b2t-vtunnel {
+  position:absolute; border-radius:50%;
+  background:radial-gradient(circle,#fff 0%,#aaeeff 30%,transparent 70%);
+  opacity:0;
+}
+#b2t-vortex.on #b2t-vtunnel { animation:vtpulse .6s 1s ease-in-out infinite alternate; }
+@keyframes vtpulse { from{opacity:.4;transform:scale(.8)} to{opacity:1;transform:scale(1.3)} }
+
+#b2t-canvas {
+  position: fixed; inset: 0;
+  width: 100vw; height: 100vh;
+  z-index: 9999; display: none; pointer-events: none;
+}
+</style>
+
+
+<!-- ══ HTML ════════════════════════════════════════════════ -->
+<div id="b2t-root">
+
+  <div id="b2t-logo-wrap">
+    <img id="b2t-logo"
+         src="https://b2truth.com/wp-content/uploads/2026/03/B2T-TP.png"
+         alt="B2T"/>
+  </div>
+
+  <div id="b2t-sg">
+    <img id="b2t-outer"
+         src="https://b2truth.com/wp-content/uploads/2026/03/outer-ring-1.png"
+         alt="Outer"/>
+    <img id="b2t-inner"
+         src="https://b2truth.com/wp-content/uploads/2026/03/inner_ring_accents.png"
+         alt="Inner"/>
+
+    <div id="b2t-vortex">
+      <div class="b2t-vr r1"></div>
+      <div class="b2t-vr r2"></div>
+      <div class="b2t-vr r3"></div>
+      <div id="b2t-vcore"></div>
+      <div id="b2t-vtunnel"></div>
+    </div>
+
+    <svg viewBox="0 0 500 500"
+         style="position:absolute;inset:0;width:100%;height:100%;z-index:35;pointer-events:none;overflow:visible;">
+      <polygon class="b2t-chev" points="250,30 260,55 240,55" transform="rotate(0   250 250)"/>
+      <polygon class="b2t-chev" points="250,30 260,55 240,55" transform="rotate(40  250 250)"/>
+      <polygon class="b2t-chev" points="250,30 260,55 240,55" transform="rotate(80  250 250)"/>
+      <polygon class="b2t-chev" points="250,30 260,55 240,55" transform="rotate(120 250 250)"/>
+      <polygon class="b2t-chev" points="250,30 260,55 240,55" transform="rotate(160 250 250)"/>
+      <polygon class="b2t-chev" points="250,30 260,55 240,55" transform="rotate(200 250 250)"/>
+      <polygon class="b2t-chev" points="250,30 260,55 240,55" transform="rotate(240 250 250)"/>
+      <polygon class="b2t-chev" points="250,30 260,55 240,55" transform="rotate(280 250 250)"/>
+      <polygon class="b2t-chev" points="250,30 260,55 240,55" transform="rotate(320 250 250)"/>
+    </svg>
+  </div>
+
+  <!-- Masque sol — positionné indépendamment, suit le bas de la porte -->
+  <div id="b2t-sol-mask"></div>
+
+  <div id="b2t-dhd-wrap">
+    <img id="b2t-dhd-img"
+         src="https://b2truth.com/wp-content/uploads/2026/03/IMG_20260315_125747.png"
+         alt="DHD"/>
+    <div id="b2t-btns">
+      <!-- Zones générées par JS depuis B2T.btns -->
+    </div>
+  </div>
+
+</div>
+
+<canvas id="b2t-canvas"></canvas>
+<audio id="b2t-sound" preload="auto">
+  <source src="https://b2truth.com/wp-content/uploads/2026/03/stargate-whoosh.mp3" type="audio/mpeg"/>
+</audio>
+
+
+<!-- ══ JS MOTEUR ════════════════════════════════════════════ -->
+<script>
+(function(){
+  var C      = window.B2T;
+  var sg     = document.getElementById('b2t-sg');
+  var inn    = document.getElementById('b2t-inner');
+  var sol    = document.getElementById('b2t-sol-mask');
+  var vortex = document.getElementById('b2t-vortex');
+  var dhd    = document.getElementById('b2t-dhd-wrap');
+  var chevs  = document.querySelectorAll('.b2t-chev');
+  /* Génère les zones de clic depuis B2T.btns */
+  var btnsContainer = document.getElementById('b2t-btns');
+  C.btns.forEach(function(b){
+    var btn = document.createElement('button');
+    btn.className = 'b2t-btn';
+    btn.dataset.url = b.url;
+    btn.style.left = b.bx + 'px';
+    btn.style.top  = b.by + 'px';
+    btn.style.width  = b.bw + 'px';
+    btn.style.height = b.bh + 'px';
+    btn.style.borderRadius = '50%';
+    btn.style.transform = 'translate(-50%,-50%)';
+    if(C.debug) btn.textContent = b.url.replace(/\//g,'');
+    btnsContainer.appendChild(btn);
+  });
+  var btns = document.querySelectorAll('.b2t-btn');
+  /* Mode debug : affiche les zones en rouge */
+  if(C.debug) btns.forEach(function(b){ b.classList.add('debug-on'); });
+  var sound  = document.getElementById('b2t-sound');
+  var canvas = document.getElementById('b2t-canvas');
+  var ctx    = canvas ? canvas.getContext('2d') : null;
+
+  /* ── Layout ── */
+  function layout(){
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    var sz = Math.round(Math.min(vw,vh) * C.sgTaille);
+
+    /* Stargate */
+    sg.style.width = sg.style.height =
+    sg.style.minWidth = sg.style.minHeight =
+    sg.style.maxWidth = sg.style.maxHeight = sz + 'px';
+    sg.style.top  = Math.round(vh * C.sgHaut)   + 'px';
+    sg.style.left = Math.round(vw * C.sgGauche) + 'px';
+    sg.style.transform = 'translate(-50%,-50%)';
+
+    /* ── Masque sol : positionné en fixed, calé sous le bas de la porte ── */
+    var sgTop    = Math.round(vh * C.sgHaut);   /* centre vertical porte */
+    var sgBottom = sgTop + sz / 2;               /* bas de la porte en px */
+    var solH     = Math.round(sz * (C.solHauteur / 100));
+    sol.style.height = solH + 'px';
+    sol.style.bottom = Math.round(vh - sgBottom) + 'px';
+
+    /* Inner ring */
+    var sc = Math.min(Math.max(C.irTaille||0.88, 0.3), 1.0);
+    inn.style.transform = 'rotate(' + angle + 'deg) scale(' + sc + ')';
+    if(!inn._measured) measureAndCorrect();
+
+    /* Vortex */
+    var vs = Math.round(sz * 0.72);
+    var vo = Math.round((sz - vs) / 2);
+    vortex.style.width  = vortex.style.height = vs + 'px';
+    vortex.style.top    = vortex.style.left   = vo + 'px';
+    var rings = vortex.querySelectorAll('.b2t-vr');
+    [0.92,0.70,0.48].forEach(function(p,i){
+      rings[i].style.width = rings[i].style.height = Math.round(vs*p) + 'px';
+    });
+    document.getElementById('b2t-vcore').style.width  =
+    document.getElementById('b2t-vcore').style.height = Math.round(vs*0.30) + 'px';
+    document.getElementById('b2t-vtunnel').style.width  =
+    document.getElementById('b2t-vtunnel').style.height = Math.round(vs*0.25) + 'px';
+
+    /* DHD */
+    var dw = Math.min(Math.round(vw * C.dhdLargeur), 480);
+    dhd.style.width = dw + 'px';
+    dhd.style.left  = Math.round(vw * C.dhdGauche) + 'px';
+
+    if(!dhd.classList.contains('init')){
+      dhd.classList.add('init');
+      dhd.style.transition = 'none';
+      dhd.style.transform  = 'translateX(-50%) translateY(' + C.dhdDescente + '%)';
+      setTimeout(function(){ dhd.style.transition = ''; }, 30);
+    }
+  }
+  layout();
+  window.addEventListener('resize', layout);
+
+  /* ── Correction décalage PNG ── */
+  function measureAndCorrect() {
+    var outerImg = document.getElementById('b2t-outer');
+    if(!outerImg.complete || !inn.complete) {
+      outerImg.addEventListener('load', measureAndCorrect, {once:true});
+      inn.addEventListener('load', measureAndCorrect, {once:true});
+      return;
+    }
+    inn._measured = true;
+    var sz = 200;
+    var offO = document.createElement('canvas');
+    var offI = document.createElement('canvas');
+    offO.width = offO.height = offI.width = offI.height = sz;
+    var ctxO = offO.getContext('2d');
+    var ctxI = offI.getContext('2d');
+    ctxO.drawImage(outerImg, 0, 0, sz, sz);
+    ctxI.drawImage(inn, 0, 0, sz, sz);
+    function com(c,w,h){
+      var d=c.getImageData(0,0,w,h).data,sx=0,sy=0,t=0;
+      for(var y=0;y<h;y++) for(var x=0;x<w;x++){
+        var a=d[(y*w+x)*4+3]; if(a>10){sx+=x;sy+=y;t++;}
+      }
+      return t>0?{x:sx/t,y:sy/t}:{x:w/2,y:h/2};
+    }
+    var coO=com(ctxO,sz,sz), coI=com(ctxI,sz,sz);
+    inn.style.transformOrigin = (50+(coO.x-coI.x)/sz*100)+'% '+(50+(coO.y-coI.y)/sz*100)+'%';
+  }
+
+  /* ── Rotation inner ring — arrêtée au départ ── */
+  var angle=0, totalAngle=0, glowLvl=0, spinning=false, raf=null;
+
+  function spin(){
+    if(!spinning) return;
+    angle = (angle + C.rotation) % 360;
+    totalAngle += C.rotation;
+    var sc = Math.min(Math.max(C.irTaille||0.88, 0.3), 1.0);
+    inn.style.transform = 'rotate('+angle+'deg) scale('+sc+')';
+    var lvl = Math.min(Math.floor(totalAngle/C.glowStep),6);
+    if(lvl!==glowLvl){
+      glowLvl=lvl;
+      inn.className=inn.className.replace(/\bg\d\b/g,'').trim();
+      if(glowLvl>0) inn.classList.add('g'+glowLvl);
+    }
+    raf=requestAnimationFrame(spin);
+  }
+
+  /* ── DHD zoom ── */
+  var zoomed=false, activated=false;
+
+  function zoomIn(){
+    if(zoomed||activated) return;
+    zoomed=true;
+    /* Démarre la rotation au premier mouvement */
+    if(!spinning){
+      spinning=true;
+      requestAnimationFrame(spin);
+    }
+    var vw=window.innerWidth;
+    var dw = Math.min(Math.round(vw*C.dhdLargeur), 480);
+    dhd.style.width     = dw+'px';
+    dhd.style.transform = 'translateX(-50%) translateY('+C.dhdZoomDescente+'%) scale('+C.dhdZoomLargeur+')';
+    dhd.classList.add('zoomed');
+  }
+
+  function zoomOut(){
+    btns.forEach(function(b){b.classList.remove('hovered');});
+    dhd.classList.remove('zoomed');
+    /* Position intermédiaire après clic — plus gros que l'état initial */
+    requestAnimationFrame(function(){
+      dhd.style.transform = 'translateX(-50%) translateY(55%) scale(1.6)';
+    });
+  }
+
+  document.addEventListener('mousemove',function f(){zoomIn();document.removeEventListener('mousemove',f);});
+  document.addEventListener('touchstart',function f(){zoomIn();document.removeEventListener('touchstart',f);},{passive:true});
+
+  /* ── Boutons ── */
+  btns.forEach(function(btn){
+    btn.addEventListener('mouseenter',function(){
+      if(!dhd.classList.contains('zoomed')) return;
+      btn.classList.add('hovered');
+    });
+    btn.addEventListener('mouseleave',function(){ btn.classList.remove('hovered'); });
+    btn.addEventListener('touchstart',function(){
+      if(!dhd.classList.contains('zoomed')) return;
+      btn.classList.add('hovered');
+    },{passive:true});
+    btn.addEventListener('touchend',function(){
+      setTimeout(function(){btn.classList.remove('hovered');},600);
+    });
+
+    btn.addEventListener('click',function(){
+      if(activated) return;
+      var isMobile=('ontouchstart' in window);
+      if(!isMobile && !btn.classList.contains('hovered')) return;
+      if(!dhd.classList.contains('zoomed')) return;
+      activated=true;
+      var url=btn.dataset.url||'/';
+      zoomOut();
+      spinning=false;
+      cancelAnimationFrame(raf);
+      inn.className=inn.className.replace(/\bg\d\b/g,'').trim();
+      inn.classList.add('gmax');
+
+      setTimeout(function(){
+        var i=0;
+        var iv=setInterval(function(){
+          if(i<chevs.length){ chevs[i++].classList.add('lit'); }
+          else{
+            clearInterval(iv);
+            try{sound.play();}catch(e){}
+            setTimeout(function(){
+              vortex.classList.add('on');
+              dhd.style.opacity='0';
+              inn.style.opacity='0.3';
+              setTimeout(function(){
+                if(!canvas||!ctx){window.location.href=url;return;}
+                canvas.width=window.innerWidth;
+                canvas.height=window.innerHeight;
+                var w=canvas.width,h=canvas.height,cx=w/2,cy=h/2;
+                var stars=[];
+                for(var j=0;j<200;j++) stars.push({
+                  a:Math.random()*Math.PI*2,
+                  d:Math.random()*Math.min(w,h)*0.45,
+                  sp:2+Math.random()*6,
+                  sz:0.5+Math.random()*2,
+                  hue:180+Math.random()*60
+                });
+                canvas.style.display='block';
+                var t0=performance.now();
+                (function draw(ts){
+                  var p=Math.min((ts-t0)/1800,1);
+                  ctx.clearRect(0,0,w,h);
+                  ctx.fillStyle='rgba(0,0,10,'+(0.15+p*0.55)+')';
+                  ctx.fillRect(0,0,w,h);
+                  stars.forEach(function(s){
+                    s.d+=s.sp*(1+p*3);
+                    if(s.d>Math.max(w,h)) s.d=4+Math.random()*20;
+                    var x=cx+Math.cos(s.a)*s.d,y=cy+Math.sin(s.a)*s.d;
+                    var al=Math.min(1,s.d/55);
+                    ctx.beginPath();ctx.arc(x,y,s.sz*(1+p),0,Math.PI*2);
+                    ctx.fillStyle='hsla('+s.hue+',100%,70%,'+al+')';ctx.fill();
+                    ctx.beginPath();
+                    ctx.moveTo(cx+Math.cos(s.a)*(s.d-s.sp*3),cy+Math.sin(s.a)*(s.d-s.sp*3));
+                    ctx.lineTo(x,y);
+                    ctx.strokeStyle='hsla('+s.hue+',100%,70%,'+(al*0.4)+')';
+                    ctx.lineWidth=s.sz*0.5;ctx.stroke();
+                  });
+                  if(p<1){requestAnimationFrame(draw);}
+                  else{
+                    ctx.fillStyle='rgba(255,255,255,.96)';
+                    ctx.fillRect(0,0,w,h);
+                    setTimeout(function(){window.location.href=url;},180);
+                  }
+                })(performance.now());
+              },1200);
+            },400);
+          }
+        },180);
+      },900);
+    });
+  });
+
+})();
+</script>
